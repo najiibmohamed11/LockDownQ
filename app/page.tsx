@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { OwlLogo } from "@/components/owl-logo"
+import Image from "next/image"
 
 export default function Home() {
   return (
@@ -25,19 +26,19 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-6">
-            <OwlLogo size={80} />
-          </div>
-          <h1 className="text-4xl font-bold text-purple-900 mb-2">QuizWise</h1>
-          <p className="text-purple-700">Create and join engaging quiz rooms</p>
+        <div className="text-center mb-4">
+          <div className="flex justify-center ">
+      <Image src='/logo.svg'  alt="logo"  width={150}
+      height={150}/>
+              </div>
+         
         </div>
 
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6 border border-purple-100">
           <h2 className="text-xl font-semibold text-purple-900 text-center mb-4">I am a...</h2>
 
           <div className="grid grid-cols-2 gap-4">
-            <Link href="/teacher" className="block">
+            <Link href="/sign-in" className="block">
               <Button className="w-full h-24 bg-purple-600 hover:bg-purple-700 text-white text-lg flex flex-col items-center justify-center gap-2 rounded-xl">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

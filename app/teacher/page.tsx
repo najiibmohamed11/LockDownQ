@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { PlusCircle, Search, Users, Clock, Play, Pause } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OwlLogo } from "@/components/owl-logo"
+import { UserProfile } from "@/components/profile"
 
 // Mock data for UI demonstration
 const mockRooms = [
@@ -85,6 +86,7 @@ export default function TeacherRooms() {
             >
               <PlusCircle className="mr-2 h-4 w-4" /> New Room
             </Button>
+            <UserProfile email="abdinajib@gmail.com" name="abdi" imageUrl=""></UserProfile>
           </div>
         </div>
 
