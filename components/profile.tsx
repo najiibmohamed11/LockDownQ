@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User, CreditCard, ChevronDown } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function UserProfile() {
   const [isOpen, setIsOpen] = useState(false);
@@ -51,7 +52,17 @@ export function UserProfile() {
   };
 
   if (!isLoaded) {
-    return null;
+    return (
+      <div className="relative">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 px-2 py-1 rounded-full "
+        >
+          <Skeleton className="h-8 w-8 rounded-full bg-gray-400" />
+          <Skeleton className="h-4 w-4 bg-gray-400" />
+        </Button>
+      </div>
+    );
   }
 
   if (!user) {
@@ -59,13 +70,13 @@ export function UserProfile() {
       <Button
         variant="outline"
         className="flex items-center gap-2"
-        onClick={() => router.push("/teacher/sign-in")}
+        onClick={() => router.push("/sign-in")}
       >
         Sign In
       </Button>
     );
   }
-
+  console.log(user);
   return (
     <div className="relative" ref={dropdownRef}>
       <Button

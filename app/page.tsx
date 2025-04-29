@@ -9,17 +9,41 @@ export default function Home() {
       {/* Decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 opacity-5">
-          <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" className="text-purple-900">
+          <svg
+            width="120"
+            height="120"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="text-purple-900"
+          >
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
           </svg>
         </div>
-        <div className="absolute top-1/3 right-1/4 opacity-5" style={{ animationDelay: "1s" }}>
-          <svg width="160" height="160" viewBox="0 0 24 24" fill="currentColor" className="text-purple-900">
+        <div
+          className="absolute top-1/3 right-1/4 opacity-5"
+          style={{ animationDelay: "1s" }}
+        >
+          <svg
+            width="160"
+            height="160"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="text-purple-900"
+          >
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
           </svg>
         </div>
-        <div className="absolute bottom-1/4 left-1/3 opacity-5" style={{ animationDelay: "2s" }}>
-          <svg width="140" height="140" viewBox="0 0 24 24" fill="currentColor" className="text-purple-900">
+        <div
+          className="absolute bottom-1/4 left-1/3 opacity-5"
+          style={{ animationDelay: "2s" }}
+        >
+          <svg
+            width="140"
+            height="140"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="text-purple-900"
+          >
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
           </svg>
         </div>
@@ -28,15 +52,14 @@ export default function Home() {
       <div className="relative z-10 max-w-md w-full">
         <div className="text-center mb-4">
           <div className="flex justify-center ">
-      <Image src='/logo.svg'  alt="logo"  width={150}
-      height={150}/>
-              </div>
-         
+            <Image src="/logo.svg" alt="logo" width={150} height={150} />
+          </div>
         </div>
 
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6 border border-purple-100">
-          <h2 className="text-xl font-semibold text-purple-900 text-center mb-4">I am a...</h2>
-
+          <h2 className="text-xl font-semibold text-purple-900 text-center mb-4">
+            I am a...
+          </h2>
           <div className="grid grid-cols-2 gap-4">
             <Link href="/sign-in" className="block">
               <Button className="w-full h-24 bg-purple-600 hover:bg-purple-700 text-white text-lg flex flex-col items-center justify-center gap-2 rounded-xl">
@@ -87,5 +110,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-  )
+  );
 }
