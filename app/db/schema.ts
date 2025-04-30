@@ -26,7 +26,7 @@ export const rooms = pgTable("rooms", {
   randomizeQuestions: boolean("randomize_questions").default(true),
   showOneQuestionAtTime: boolean("show_one_question_at_time").default(true),
   participantList: jsonb("participant_list").default([]),
-  // numberOfQuestions:integer("numberOfQuestions"),
+  numberOfQuestions:integer("numberOfQuestions"),
   ...timestamps,
 });
 

@@ -41,6 +41,7 @@ export async function createQuizRoom(data: CreateRoomData) {
         participantList: data.participantList,
         status: "active",
         owner: data.owner.toString(),
+        numberOfQuestions:data.questions.length
       })
       .returning();
 
@@ -72,27 +73,27 @@ export async function createQuizRoom(data: CreateRoomData) {
   }
 }
 
-export type RoomWithQuestions = {
-  id: string;
-  name: string;
-  duration: number | null;
-  status: string;
-  owner: string;
-  restrictParticipants: boolean;
-  preventCopying: boolean;
-  randomizeQuestions: boolean;
-  showOneQuestionAtTime: boolean;
-  participantList: string[];
-  // numberOfQuestions: number;
-  questions: {
-    id: string;
-    type: string;
-    question: string;
-    options: string[];
-    answer: string | number;
-  }[];
-  created_at: Date;
-};
+// export type RoomWithQuestions = {
+//   id: string;
+//   name: string;
+//   duration: number | null;
+//   status: string;
+//   owner: string;
+//   restrictParticipants: boolean;
+//   preventCopying: boolean;
+//   randomizeQuestions: boolean;
+//   showOneQuestionAtTime: boolean;
+//   participantList: string[];
+//   // numberOfQuestions: number;
+//   questions: {
+//     id: string;
+//     type: string;
+//     question: string;
+//     options: string[];
+//     answer: string | number;
+//   }[];
+//   created_at: Date;
+// };
 
 export async function getRooms(ownerId: string) {
   try {
@@ -101,6 +102,7 @@ export async function getRooms(ownerId: string) {
       .from(rooms)
       .where(eq(rooms.owner, ownerId))
       .orderBy(rooms.created_at);
+      console.log(allRooms)
 
     return { success: true, rooms: allRooms };
   } catch (error) {

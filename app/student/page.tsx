@@ -8,13 +8,24 @@ import { Input } from "@/components/ui/input"
 import { ArrowRight } from "lucide-react"
 import Image from "next/image"
 import { redirect } from 'next/navigation'
+import { isRoomExists } from "../actions/quiz"
 
-export default function JoinQuiz() {
+export default function JoinQuiz({ searchParams }: { searchParams: { error?: string } }) {
+  const error = searchParams.error;
+
 
    const handleJoin =async (formdata:FormData) => {
     'use server'
     console.log(formdata.get('room-name'))
     const roomName=formdata.get('room-name')
+    if(!roomName){
+      return;
+    }
+    const {exists,error}=await isRoomExists(roomName?.toString())
+    if(!exists){
+      redirect(`/student?error=room-not-found`);
+    }
+   
     redirect( `/student/${roomName}/student-info`)
   }
 
@@ -69,7 +80,7 @@ export default function JoinQuiz() {
                 />
               </div>
 
-              {false && <div className="bg-red-100 text-red-800 px-3 py-2 rounded-md text-sm"></div>}
+              {error && <div className="bg-red-100 text-red-800 px-3 py-2 rounded-md text-sm text-center flex justify-center items-center">{error}</div>}
 
               <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 py-6 text-lg">
                 Join Quiz <ArrowRight className="ml-2 h-5 w-5" />

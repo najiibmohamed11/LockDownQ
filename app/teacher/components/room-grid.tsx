@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { OwlLogo } from "@/components/owl-logo";
 import {  currentUser } from "@clerk/nextjs/server";
 import { getRooms } from "@/app/actions/quiz";
+import { db } from "@/app/db/drizzle";
+import { rooms, questions } from "@/app/db/schema";import { eq } from "drizzle-orm";
 
 interface RoomGridProps {
   initialSearchQuery?: string;
@@ -22,9 +24,15 @@ export async function RoomGrid() {
     );
   }
 
-  const result = await getRooms(user?.id);
+  const result =  await db
+          .select()
+          .from(rooms)
+          .where(eq(rooms.owner, user.id))
+          .orderBy(rooms.created_at);
+    
+    
 
-  if (!result.success) {
+  if (!result) {
     return (
       <div className="text-red-500">
         {result.error || "Failed to fetch rooms"}
@@ -32,7 +40,6 @@ export async function RoomGrid() {
     );
   }
 
-  const rooms = result.rooms;
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
@@ -45,7 +52,7 @@ export async function RoomGrid() {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {rooms.map((room) => (
+        {result.map((room) => (
           <Link href={`/teacher/room/${room.id}`} key={room.id}>
             <div className="group h-full">
               <Card className="h-full bg-white/90 backdrop-blur-sm border-purple-100 overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.02]">
@@ -81,31 +88,17 @@ export async function RoomGrid() {
                       </span>
                     </div>
 
-                    <div className="flex items-center text-purple-800">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-2"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                      </svg>
-                      <span>{room.questions?.length || 0} questions</span>
+                    <div className="flex items-center text-purple-800 ">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-help-icon lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                      <span className="ml-2">{room.numberOfQuestions || 0} questions</span>
                     </div>
 
-                    {room.duration && (
+                    {
                       <div className="flex items-center text-purple-800">
                         <Clock className="h-4 w-4 mr-2" />
-                        <span>{room.duration} minutes</span>
+                        <span >{room.duration?`${room.duration} minutes`:"  unlimited"} </span>
                       </div>
-                    )}
+                    }
                   </div>
                 </div>
 
@@ -146,7 +139,7 @@ export async function RoomGrid() {
         ))}
       </div>
 
-      {rooms.length === 0 && (
+      {result.length === 0 && (
         <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 text-center">
           <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
             <OwlLogo size={32} />
@@ -155,13 +148,11 @@ export async function RoomGrid() {
             No quiz rooms found
           </h3>
           <p className="text-purple-700 mb-6">
-            {initialSearchQuery
-              ? "Try a different search term"
-              : "Create your first quiz room to get started"}
+     "Try a different search term"
+       
           </p>
           <Button
             className="bg-purple-600 hover:bg-purple-700"
-            onClick={onCreateRoom}
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Create New Room
           </Button>

@@ -173,33 +173,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
         <Card className="bg-white/90 backdrop-blur-sm border-purple-100 mb-6 p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-purple-700 mb-1">Room Description</h3>
-                {isEditing ? (
-                  <textarea
-                    value={roomDescription}
-                    onChange={(e) => setRoomDescription(e.target.value)}
-                    className="w-full rounded-md border border-purple-200 bg-white/80 px-3 py-2 text-sm"
-                    rows={3}
-                  ></textarea>
-                ) : (
-                  <p className="text-purple-900">{roomDescription}</p>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-purple-700 mb-1">Duration</h3>
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-2 text-purple-600" />
-                  <span className="text-purple-900">{roomData.duration}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-      
-
-              <div>
+            <div>
                 <h3 className="text-sm font-medium text-purple-700 mb-1">Questions</h3>
                 <div className="flex items-center">
                   <svg
@@ -229,6 +203,21 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                   <span className="text-purple-900">{roomData.participants.length} students</span>
                 </div>
               </div>
+         
+
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-purple-700 mb-1">Duration</h3>
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 mr-2 text-purple-600" />
+                  <span className="text-purple-900">{roomData.duration}</span>
+                </div>
+              </div>
+      
+
+    
             </div>
 
             <div className="space-y-4">
