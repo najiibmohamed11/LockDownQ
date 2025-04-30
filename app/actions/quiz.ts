@@ -3,6 +3,8 @@
 import { db } from "@/app/db/drizzle";
 import { rooms, questions } from "@/app/db/schema";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
 import { eq } from "drizzle-orm";
 
 export type CreateRoomData = {
@@ -27,7 +29,6 @@ export type CreateRoomData = {
 export async function createQuizRoom(data: CreateRoomData) {
   try {
     // Create the room first
-    console.log(data.owner);
     const [room] = await db
       .insert(rooms)
       .values({
@@ -39,8 +40,7 @@ export async function createQuizRoom(data: CreateRoomData) {
         showOneQuestionAtTime: data.settings.showOneQuestionAtTime,
         participantList: data.participantList,
         status: "active",
-        owner: data.owner.toString() || "", // TODO: Replace with actual user ID from session
-        // numberOfQuestions: data.questions.length,
+        owner: data.owner.toString(),
       })
       .returning();
 
@@ -57,11 +57,18 @@ export async function createQuizRoom(data: CreateRoomData) {
 
     await Promise.all(questionPromises);
 
-    // revalidatePath("/teacher/rooms");
-    return { success: true, roomId: room.id };
+    // Return success with room ID and redirect path
+    return {
+      success: true,
+      roomId: room.id,
+      redirectPath: "/teacher",
+    };
   } catch (error) {
     console.error("Error creating quiz room:", error);
-    return { success: false, error: "Failed to create quiz room" };
+    return {
+      success: false,
+      error: "Failed to create quiz room",
+    };
   }
 }
 
@@ -125,5 +132,25 @@ export async function getRoomById(roomId: string) {
   } catch (error) {
     console.error("Error fetching room:", error);
     return { success: false, error: "Failed to fetch room" };
+  }
+}
+
+export async function isRoomExists(roomName: string) {
+  try {
+    const existingRooms = await db
+      .select()
+      .from(rooms)
+      .where(eq(rooms.name, roomName.trim()));
+
+    return {
+      exists: existingRooms.length > 0,
+      error: null,
+    };
+  } catch (error) {
+    console.error("Error checking room existence:", error);
+    return {
+      exists: false,
+      error: "Failed to check room existence",
+    };
   }
 }

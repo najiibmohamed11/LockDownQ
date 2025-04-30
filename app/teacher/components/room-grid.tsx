@@ -12,10 +12,8 @@ interface RoomGridProps {
   onCreateRoom?: () => void;
 }
 
-export async function RoomGrid({
-  initialSearchQuery = "",
-  onCreateRoom,
-}: RoomGridProps) {
+export async function RoomGrid() {
+  
   const user = await currentUser();
 
   if (!user) {

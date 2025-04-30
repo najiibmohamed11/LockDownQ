@@ -39,7 +39,7 @@ import {
   AlignJustify,
   ArrowLeft,
 } from "lucide-react";
-import { createQuizRoom } from "@/app/actions/quiz";
+import { createQuizRoom, isRoomExists } from "@/app/actions/quiz";
 import { toast } from "sonner";
 import { useUser } from "@clerk/nextjs";
 
@@ -51,6 +51,7 @@ export default function CreateRoom() {
   const [roomName, setRoomName] = useState("");
   const [duration, setDuration] = useState("");
   const [isNameValid, setIsNameValid] = useState(true);
+  const [nameError, setNameError] = useState("");
   const [restrictParticipants, setRestrictParticipants] = useState(false);
   const [preventCopying, setPreventCopying] = useState(true);
   const [randomizeQuestions, setRandomizeQuestions] = useState(true);
@@ -102,16 +103,46 @@ export default function CreateRoom() {
     );
   };
 
-  const validateRoomName = (name: string) => {
-    // Simple validation - ensure name is not empty and at least 3 characters
-    const valid = name.trim().length >= 3;
-    setIsNameValid(valid);
-    return valid;
+  const validateRoomName = async (name: string) => {
+    // Reset error state
+    setNameError("");
+    setIsNameValid(true);
+
+    // Basic validation
+    if (name.trim().length < 3) {
+      setNameError("Room name must be at least 3 characters long");
+      setIsNameValid(false);
+      return false;
+    }
+
+    // Check if room exists
+    const { exists, error } = await isRoomExists(name);
+
+    if (error) {
+      setNameError("Failed to validate room name. Please try again.");
+      setIsNameValid(false);
+      return false;
+    }
+
+    if (exists) {
+      setNameError("A room with this name already exists");
+      setIsNameValid(false);
+      return false;
+    }
+
+    return true;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1) {
-      if (!validateRoomName(roomName)) return;
+      // Validate room name before proceeding
+      const isValid = await validateRoomName(roomName);
+      if (!isValid) {
+        toast.error(
+          "Please fix the room name validation errors before proceeding"
+        );
+        return;
+      }
     }
     setStep(step + 1);
   };
@@ -121,15 +152,17 @@ export default function CreateRoom() {
   };
 
   const handleSave = async () => {
-    if(!user){
+    if (!user) {
+      toast.error("You must be logged in to create a room");
       return;
     }
+
     try {
       const result = await createQuizRoom({
         roomName,
         duration,
         questions,
-        owner:user.id,
+        owner: user.id,
         settings: {
           restrictParticipants,
           preventCopying,
@@ -141,6 +174,8 @@ export default function CreateRoom() {
 
       if (result.success) {
         toast.success("Quiz room created successfully!");
+        // Use router for client-side navigation
+        router.push(result.redirectPath || "/teacher");
       } else {
         toast.error(result.error || "Failed to create quiz room");
       }
@@ -234,10 +269,8 @@ export default function CreateRoom() {
                 }}
                 className={!isNameValid ? "border-red-500" : ""}
               />
-              {!isNameValid && (
-                <p className="text-red-500 text-sm">
-                  Room name must be at least 3 characters
-                </p>
+              {!isNameValid && nameError && (
+                <p className="text-red-500 text-sm">{nameError}</p>
               )}
             </div>
 
