@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/app/db/drizzle";
-import { rooms, questions } from "@/app/db/schema";
+import { rooms, questions, participants } from "@/app/db/schema";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { eq } from "drizzle-orm";
+import { error } from "console";
 
 export type CreateRoomData = {
   roomName: string;
@@ -41,7 +42,7 @@ export async function createQuizRoom(data: CreateRoomData) {
         participantList: data.participantList,
         status: "active",
         owner: data.owner.toString(),
-        numberOfQuestions:data.questions.length
+        numberOfQuestions: data.questions.length,
       })
       .returning();
 
@@ -51,7 +52,7 @@ export async function createQuizRoom(data: CreateRoomData) {
         roomId: room.id,
         type: q.type,
         question: q.question,
-        options: q.type == "true_false" ? ["true", "false"] : q.options,
+        options: q.type == "true_false" ? ["true", "false"] : q.options.filter((option)=>option!=""),
         answer: q.answer,
       })
     );
@@ -102,7 +103,7 @@ export async function getRooms(ownerId: string) {
       .from(rooms)
       .where(eq(rooms.owner, ownerId))
       .orderBy(rooms.created_at);
-      console.log(allRooms)
+    console.log(allRooms);
 
     return { success: true, rooms: allRooms };
   } catch (error) {
@@ -147,6 +148,7 @@ export async function isRoomExists(roomName: string) {
     return {
       exists: existingRooms.length > 0,
       error: null,
+      roomId: existingRooms.length > 0 ? existingRooms[0].id : null,
     };
   } catch (error) {
     console.error("Error checking room existence:", error);
@@ -156,3 +158,99 @@ export async function isRoomExists(roomName: string) {
     };
   }
 }
+
+export const getQuestions = async (roomId: string) => {
+  console.log(roomId);
+  if (!roomId) {
+    return {
+      success: false,
+      message: "please profide room id",
+    };
+  }
+
+  try {
+    const questionsResponse = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.roomId, roomId));
+
+    console.log(questionsResponse);
+    return {
+      success: true,
+      questionsResponse,
+    };
+  } catch (e) {
+    return {
+      success: false,
+      message: "there is issue",
+    };
+  }
+};
+
+export const submitAnswer = async (
+  participantId: string,
+  questionId: string,
+  answer: string | number,
+  corectAnswer: number | string
+) => {
+  // Input validation
+  if (!participantId || !questionId) {
+    return {
+      success: false,
+      message: "Missing required parameters",
+    };
+  }
+
+  // Validate answer type
+  if (answer === undefined || answer === null) {
+    return {
+      success: false,
+      message: "Please provide an answer",
+    };
+  }
+
+  try {
+    const existing = await db
+      .select()
+      .from(participants)
+      .where(eq(participants.id, participantId))
+      .then((rows) => rows[0]);
+
+    if (!existing) {
+      return {
+        success: false,
+        message: "Participant not found",
+      };
+    }
+
+    const decision = typeof answer === "number" ? answer == corectAnswer : null;
+
+    // Ensure answer is properly typed
+    const typedAnswer = typeof answer === "number" ? answer.toString() : answer;
+
+    // Merge with existing JSON options
+    const newOptions = {
+      ...(existing.options || {}),
+      [questionId]: { option: typedAnswer, decision: decision },
+    };
+
+
+    await db
+      .update(participants)
+      .set({ options: newOptions, })
+      .where(eq(participants.id, participantId));
+
+    return {
+      success: true,
+      message: "Answer saved successfully",
+    };
+  } catch (e) {
+    console.error("Error submitting answer:", e);
+    return {
+      success: false,
+      message: "Failed to save answer. Please try again.",
+    };
+  }
+};
+
+

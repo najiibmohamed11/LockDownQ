@@ -1,13 +1,15 @@
-'use client';
-import { AuthenticateWithRedirectCallback } from '@clerk/nextjs';
+import { AuthenticateWithRedirectCallback } from '@clerk/nextjs'
+import React from 'react'
 
-export default function SSOCallback() {
+function SsoCallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="flex flex-col items-center gap-2">
-        <div className="animate-spin">Loading...</div>
-        <AuthenticateWithRedirectCallback />
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <AuthenticateWithRedirectCallback 
+    signInFallbackRedirectUrl="/sign-in"
+    signUpFallbackRedirectUrl="/sign-in"
+  />
     </div>
-  );
+  )
 }
+
+export default SsoCallback

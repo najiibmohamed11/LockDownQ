@@ -8,6 +8,7 @@ import {
   timestamp,
   jsonb,
 } from "drizzle-orm/pg-core";
+import { number } from "framer-motion";
 
 const timestamps = {
   updated_at: timestamp(),
@@ -44,3 +45,10 @@ export const questions = pgTable("questions", {
 
 
 
+export const participants=pgTable('participants',{
+  id:uuid("id").defaultRandom().primaryKey(),
+  roomId:uuid("room_id").references(()=>rooms.id),
+  name:varchar("name"),
+  options: jsonb("options").default({}),
+  progress:integer("progress").default(0)
+})
