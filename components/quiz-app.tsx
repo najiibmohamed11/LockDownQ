@@ -146,7 +146,7 @@ export default function QuizApp() {
   return (
     <>
       {!showResults ? (
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-2xl mx-auto px-4">
           <AnimatePresence mode="wait">
             <motion.div
               key="quiz"
@@ -154,30 +154,31 @@ export default function QuizApp() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="bg-card rounded-xl shadow-lg overflow-hidden border"
+              className="bg-card rounded-xl shadow-lg overflow-hidden border w-full"
             >
-              <div className="p-8">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="px-4 py-1.5 bg-secondary rounded-full text-secondary-foreground font-medium">
+              <div className="p-4 sm:p-8">
+                <div className="flex justify-between items-center mb-4 sm:mb-6">
+                  <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-secondary rounded-full text-secondary-foreground text-sm sm:text-base font-medium">
                     Question {currentQuestion + 1}/{questions.length}
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-bold text-foreground mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8 break-words whitespace-pre-wrap">
                   {currentQ.question || ""}
                 </h2>
 
-                <div className="grid gap-4">
+                <div className="grid gap-3 sm:gap-4">
                   {currentQ.type === "short_answer" ? (
                     <motion.button
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                       disabled={isAnswered}
+                      className="w-full"
                     >
                       <input
                         onChange={(e) => handleAnswerSelect(e.target.value)}
                         placeholder="Enter your answer here"
-                        className="relative p-6 w-full rounded-xl text-left font-medium transition-all duration-200 bg-secondary hover:bg-secondary/80 text-secondary-foreground border-2"
+                        className="relative p-4 sm:p-6 w-full rounded-xl text-left font-medium transition-all duration-200 bg-secondary hover:bg-secondary/80 text-secondary-foreground border-2 text-sm sm:text-base"
                       />
                     </motion.button>
                   ) : (
@@ -188,15 +189,15 @@ export default function QuizApp() {
                         whileTap={{ scale: 0.99 }}
                         onClick={() => handleAnswerSelect(index)}
                         className={cn(
-                          "relative p-6 rounded-xl text-left font-medium transition-all duration-200",
+                          "relative p-4 sm:p-6 rounded-xl text-left font-medium transition-all duration-200 w-full",
                           selectedAnswer === index
                             ? "bg-primary text-primary-foreground"
                             : "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
-                          "border-2"
+                          "border-2 text-sm sm:text-base"
                         )}
                         disabled={isAnswered}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between break-words whitespace-pre-wrap">
                           <span>{option}</span>
                         </div>
                       </motion.button>
@@ -205,7 +206,7 @@ export default function QuizApp() {
                 </div>
               </div>
 
-              <div className="p-6 bg-secondary flex justify-between items-center">
+              <div className="p-4 sm:p-6 bg-secondary flex justify-between items-center">
                 <Button
                   onClick={handleNextQuestion}
                   className="ml-auto bg-primary hover:bg-primary/90 text-primary-foreground"
