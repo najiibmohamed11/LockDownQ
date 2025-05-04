@@ -103,7 +103,6 @@ export async function getRooms(ownerId: string) {
       .from(rooms)
       .where(eq(rooms.owner, ownerId))
       .orderBy(rooms.created_at);
-    console.log(allRooms);
 
     return { success: true, rooms: allRooms };
   } catch (error) {
@@ -160,7 +159,6 @@ export async function isRoomExists(roomName: string) {
 }
 
 export const getQuestions = async (roomId: string) => {
-  console.log(roomId);
   if (!roomId) {
     return {
       success: false,
@@ -174,7 +172,6 @@ export const getQuestions = async (roomId: string) => {
       .from(questions)
       .where(eq(questions.roomId, roomId));
 
-    console.log(questionsResponse);
     return {
       success: true,
       questionsResponse,

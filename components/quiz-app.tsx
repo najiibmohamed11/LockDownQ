@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { getQuestions, submitAnswer } from "@/app/actions/quiz";
 import { QuizResults } from "@/app/student/quiz/QuizResults";
+import QuizSkeleton from "./quizSkeleton";
 
 interface Question {
   id: string;
@@ -134,7 +135,7 @@ export default function QuizApp() {
   };
 
   if (questions.length === 0) {
-    return <div className="text-center p-4">Loading questions...</div>;
+    return <QuizSkeleton/>
   }
 
   if (error) {
