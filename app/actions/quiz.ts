@@ -251,3 +251,20 @@ export const submitAnswer = async (
 };
 
 
+export  const checkIfTheRoomExist=async(roomId:string)=>{
+    try{
+      const room=await db.select().from(rooms).where(eq(rooms.id,roomId))
+      console.log(room)
+      return{
+        exist:room.length>0,
+        message:"not exist"
+      }
+    }catch(e){
+    console.log(e)
+     return {
+      exists:false,
+      message:"there is issue"
+
+      }
+    }
+  }

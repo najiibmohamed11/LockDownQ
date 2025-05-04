@@ -8,8 +8,12 @@ import { Input } from "@/components/ui/input";
 import { ArrowRight, Router } from "lucide-react";
 import Image from "next/image";
 import { CreatParticipent } from "@/app/actions/participants";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { db } from "@/app/db/drizzle";
+import { rooms } from "@/app/db/schema";
+import { eq } from "drizzle-orm";
+import { checkIfTheRoomExist } from "@/app/actions/quiz";
 
 export default function StudentInfo() {
   const [name, setName] = useState("");
@@ -17,6 +21,21 @@ export default function StudentInfo() {
   const router = useRouter();
   const pathname = usePathname()
   const [isLoading,setIsLoading]=useState(false);
+
+
+
+
+  useEffect(()=>{
+      const checkRoom=async()=>{
+        const {exist,message}=await checkIfTheRoomExist(pathname.split('/')[2])
+        console.log(message)
+        if(!exist){
+          router.push("/student/")
+        }
+      }
+      checkRoom()
+    
+  },[])
 
 
   const handleJoin = async (e: React.FormEvent) => {

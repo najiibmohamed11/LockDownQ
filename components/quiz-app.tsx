@@ -32,7 +32,7 @@ export default function QuizApp() {
   const [showResults, setShowResults] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
+  useEffect(() => {  
     const fetchQuestions = async () => {
       try {
         const roomId = pathname.split("/")[3];
