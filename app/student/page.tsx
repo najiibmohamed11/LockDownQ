@@ -44,8 +44,8 @@ export default function JoinQuiz() {
       }
 
       // Only redirect if everything is successful
-      setLoading(false);
       router.push(`/student/${roomId}/student-info`);
+      setLoading(false);
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
     }

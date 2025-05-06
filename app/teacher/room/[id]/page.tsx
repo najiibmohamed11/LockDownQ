@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -23,130 +23,87 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { QuestionCreator } from "@/components/question-creator"
-import { OwlLogo } from "@/components/owl-logo"
-
-// Mock data for UI demonstration
-const roomData = {
-  id: "quiz-1",
-  name: "General Knowledge Challenge",
-  description: "Test your knowledge about various topics and facts.",
-  status: "active",
-  participants: [
-    { id: 1, name: "Emma Johnson", progress: 8, score: 7, timeSpent: "12:45" },
-    { id: 2, name: "Noah Williams", progress: 10, score: 9, timeSpent: "15:20" },
-    { id: 3, name: "Olivia Brown", progress: 6, score: 5, timeSpent: "10:15" },
-    { id: 4, name: "Liam Davis", progress: 10, score: 8, timeSpent: "14:30" },
-    { id: 5, name: "Ava Miller", progress: 4, score: 3, timeSpent: "08:10" },
-  ],
-  questions: [
-    {
-      id: 1,
-      type: "multiple-choice",
-      text: "Which planet is known as the Red Planet?",
-      options: ["Venus", "Mars", "Jupiter", "Saturn"],
-      correctAnswer: "Mars",
-    },
-    {
-      id: 2,
-      type: "true-false",
-      text: "The Great Wall of China is visible from space.",
-      options: ["True", "False"],
-      correctAnswer: "False",
-    },
-    {
-      id: 3,
-      type: "multiple-choice",
-      text: "Who painted the Mona Lisa?",
-      options: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Michelangelo"],
-      correctAnswer: "Leonardo da Vinci",
-    },
-    {
-      id: 4,
-      type: "short-answer",
-      text: "What is the chemical symbol for gold?",
-      correctAnswer: "Au",
-    },
-    {
-      id: 5,
-      type: "multiple-choice",
-      text: "Which of these is not a programming language?",
-      options: ["Java", "Python", "Cobra", "Ruby"],
-      correctAnswer: "Cobra",
-    },
-    {
-      id: 6,
-      type: "multiple-choice",
-      text: "What is the capital of Australia?",
-      options: ["Sydney", "Melbourne", "Canberra", "Perth"],
-      correctAnswer: "Canberra",
-    },
-    {
-      id: 7,
-      type: "true-false",
-      text: "The Pacific Ocean is the largest ocean on Earth.",
-      options: ["True", "False"],
-      correctAnswer: "True",
-    },
-    {
-      id: 8,
-      type: "short-answer",
-      text: "What is the largest mammal on Earth?",
-      correctAnswer: "Blue Whale",
-    },
-    {
-      id: 9,
-      type: "multiple-choice",
-      text: "Which of these elements has the chemical symbol 'K'?",
-      options: ["Krypton", "Potassium", "Calcium", "Copper"],
-      correctAnswer: "Potassium",
-    },
-    {
-      id: 10,
-      type: "multiple-choice",
-      text: "Who wrote 'Romeo and Juliet'?",
-      options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
-      correctAnswer: "William Shakespeare",
-    },
-  ],
-  duration: "30 min",
-  createdAt: "2 days ago",
-  roomCode: "QUIZ123",
-}
+import { getRoomDetails } from "@/app/actions/quiz"
+import { usePathname } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
+import ParticipantsTab from "./particpent"
 
 export default function RoomDetails({ params }: { params: { id: string } }) {
   const [isEditing, setIsEditing] = useState(false)
-  const [roomName, setRoomName] = useState(roomData.name)
-  const [roomDescription, setRoomDescription] = useState(roomData.description)
-  const [roomStatus, setRoomStatus] = useState(roomData.status)
+  const [room, setRoom] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [questions, setQuestions] = useState([])
+  const [roomStatus, setRoomStatus] = useState("draft")
   const [showAddQuestion, setShowAddQuestion] = useState(false)
   const [copiedCode, setCopiedCode] = useState(false)
-  const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null)
+  const [selectedQuestion, setSelectedQuestion] = useState(null)
+  const [roomName, setRoomName] = useState("")
+  const path = usePathname()
+  const { user, isLoaded } = useUser();
+
+  // Generate a room code based on room id or use a default
+  const generateRoomCode = (id) => {
+    if (!id) return "LOADING";
+    // Take first 6 characters of the room id and make uppercase
+    return id.substring(0, 6).toUpperCase();
+  }
+
+  useEffect(() => {
+    const fetchRoomDetails = async () => {
+      if (!user) {
+        return 
+      }
+      try {
+        const roomId = path.split('/')[3];
+        const { participants, questions, room } = await getRoomDetails(roomId, user?.id);
+        
+        setParticipants(participants || []);
+        setQuestions(questions || []);
+        setRoom(room);
+        setRoomName(room?.name || "");
+        setRoomStatus(room?.status || "draft");
+        console.log(participants[0])
+      } catch (error) {
+        console.error("Error fetching room details:", error);
+      }
+    }
+    
+    if (isLoaded && user) {
+      fetchRoomDetails();
+    }
+  }, [isLoaded, user, path]);
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(roomData.roomCode)
-    setCopiedCode(true)
-    setTimeout(() => setCopiedCode(false), 2000)
+    navigator.clipboard.writeText(`https://quiz-app-sepia-gamma.vercel.app/student/${path.split('/')[3]}`);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
   }
 
   const toggleRoomStatus = () => {
-    setRoomStatus(roomStatus === "active" ? "paused" : "active")
+    setRoomStatus(roomStatus === "active" ? "paused" : "active");
+    // Here you would typically update the room status in the database
   }
 
-  const handleQuestionClick = (questionNumber: number) => {
-    setSelectedQuestion(questionNumber)
+  const handleQuestionClick = (questionNumber) => {
+    setSelectedQuestion(questionNumber);
   }
+
+  if (!room) {
+    return <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-100 p-4 md:p-8 flex items-center justify-center">
+      <div className="text-xl font-semibold text-purple-800">Loading room details...</div>
+    </div>;
+  }
+
+  const roomCode = generateRoomCode(room.id);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-100 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-          <Link href="/teacher">
-            <Button variant="ghost" className="text-purple-700 mr-2">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Back
-            </Button>
-          </Link>
-        <div className="flex  mb-4">
-
+        <Button variant="ghost" className="text-purple-700 mr-2" onClick={() => window.history.back()}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        </Button>
+        <div className="flex mb-4">
           {isEditing ? (
             <div className="flex-1">
               <Input
@@ -156,7 +113,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
               />
             </div>
           ) : (
-            <h1 className="text-2xl md:text-3xl font-bold text-purple-900">{roomName}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-purple-900">{room.name}</h1>
           )}
           {isEditing ? (
             <Button className="ml-2 bg-purple-600 hover:bg-purple-700" onClick={() => setIsEditing(false)}>
@@ -173,7 +130,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
         <Card className="bg-white/90 backdrop-blur-sm border-purple-100 mb-6 p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-4">
-            <div>
+              <div>
                 <h3 className="text-sm font-medium text-purple-700 mb-1">Questions</h3>
                 <div className="flex items-center">
                   <svg
@@ -192,7 +149,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                   </svg>
-                  <span className="text-purple-900">{roomData.questions.length} questions</span>
+                  <span className="text-purple-900">{questions.length} questions</span>
                 </div>
               </div>
 
@@ -200,11 +157,9 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                 <h3 className="text-sm font-medium text-purple-700 mb-1">Participants</h3>
                 <div className="flex items-center">
                   <Users className="h-4 w-4 mr-2 text-purple-600" />
-                  <span className="text-purple-900">{roomData.participants.length} students</span>
+                  <span className="text-purple-900">{participants.length} students</span>
                 </div>
               </div>
-         
-
             </div>
 
             <div className="space-y-4">
@@ -212,12 +167,9 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                 <h3 className="text-sm font-medium text-purple-700 mb-1">Duration</h3>
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 mr-2 text-purple-600" />
-                  <span className="text-purple-900">{roomData.duration}</span>
+                  <span className="text-purple-900">{room.duration ? `${room.duration} min` : "Not set"}</span>
                 </div>
               </div>
-      
-
-    
             </div>
 
             <div className="space-y-4">
@@ -225,7 +177,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                 <h3 className="text-sm font-medium text-purple-700 mb-1">Room Code</h3>
                 <div className="flex items-center">
                   <div className="bg-purple-100 text-purple-800 px-3 py-2 rounded-md font-mono text-lg tracking-wider flex-1 text-center">
-                    {roomData.roomCode}
+                  https://quiz-app.......
                   </div>
                   <Button variant="ghost" size="icon" className="ml-2 text-purple-700" onClick={handleCopyCode}>
                     {copiedCode ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -272,110 +224,12 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
           </TabsList>
 
           <TabsContent value="participants" className="m-0">
-            <Card className="bg-white/90 backdrop-blur-sm border-purple-100 overflow-hidden">
-              <div className="p-4 border-b border-purple-100 flex justify-between items-center">
-                <h3 className="text-lg font-medium text-purple-900">Student Performance</h3>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-purple-700">View by:</span>
-                  <div className="bg-purple-50 rounded-lg p-1 flex">
-                    <Button variant="ghost" size="sm" className="bg-white rounded-md shadow-sm text-purple-900">
-                      Questions
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-purple-700">
-                      Students
-                    </Button>
-                  </div>
-                </div>
-              </div>
+         <ParticipantsTab participants={participants} questions={questions}/>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-purple-50">
-                      <th className="text-left p-4 text-purple-800 font-medium">NAME</th>
-                      <th className="text-left p-4 text-purple-800 font-medium">SCORE %</th>
-                      {roomData.questions.slice(0, 5).map((_, index) => (
-                        <th key={index} className="p-3 text-purple-800 font-medium text-center w-20">
-                          <button
-                            className="w-8 h-8 rounded-full bg-purple-100 hover:bg-purple-200 transition-colors flex items-center justify-center font-medium"
-                            onClick={() => handleQuestionClick(index + 1)}
-                          >
-                            {index + 1}
-                          </button>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {roomData.participants.map((student) => (
-                      <tr key={student.id} className="border-b border-purple-50 hover:bg-purple-50/50">
-                        <td className="p-4 text-purple-900 font-medium">{student.name}</td>
-                        <td className="p-4">
-                          <span
-                            className={cn(
-                              "px-2 py-1 rounded-full text-sm font-medium",
-                              student.score / student.progress >= 0.8
-                                ? "bg-green-100 text-green-800"
-                                : student.score / student.progress >= 0.6
-                                  ? "bg-indigo-100 text-indigo-800"
-                                  : "bg-amber-100 text-amber-800",
-                            )}
-                          >
-                            {Math.round((student.score / roomData.questions.length) * 100)}%
-                          </span>
-                        </td>
-                        {/* Mock answers for the first 5 questions */}
-                        <td className="p-2 text-center">
-                          <div className="bg-red-100 rounded-md p-2 text-red-800 flex items-center justify-center">
-                            <XCircle className="h-4 w-4 mr-1" /> B
-                          </div>
-                        </td>
-                        <td className="p-2 text-center">
-                          <div className="bg-green-100 rounded-md p-2 text-green-800 flex items-center justify-center">
-                            <CheckCircle className="h-4 w-4 mr-1" /> True
-                          </div>
-                        </td>
-                        <td className="p-2 text-center">
-                          <div className="bg-red-100 rounded-md p-2 text-red-800 flex items-center justify-center">
-                            <XCircle className="h-4 w-4 mr-1" /> A
-                          </div>
-                        </td>
-                        <td className="p-2 text-center">
-                          <div className="bg-green-100 rounded-md p-2 text-green-800 flex items-center justify-center">
-                            <CheckCircle className="h-4 w-4 mr-1" /> False
-                          </div>
-                        </td>
-                        <td className="p-2 text-center">
-                          <div className="bg-red-100 rounded-md p-2 text-red-800 flex items-center justify-center">
-                            <XCircle className="h-4 w-4 mr-1" /> Au
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="bg-purple-50/70">
-                      <td className="p-4 text-purple-900 font-medium">Class Total</td>
-                      <td className="p-4 text-purple-900 font-medium">
-                        {Math.round(
-                          (roomData.participants.reduce((acc, student) => acc + student.score, 0) /
-                            (roomData.participants.length * roomData.questions.length)) *
-                            100,
-                        )}
-                        %
-                      </td>
-                      <td className="p-4 text-center text-purple-900 font-medium">20%</td>
-                      <td className="p-4 text-center text-purple-900 font-medium">100%</td>
-                      <td className="p-4 text-center text-purple-900 font-medium">40%</td>
-                      <td className="p-4 text-center text-purple-900 font-medium">80%</td>
-                      <td className="p-4 text-center text-purple-900 font-medium">30%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-
-            {/* Question Detail Modal */}
+            {/* Question Detail Modal - keeping as is for now */}
             {selectedQuestion && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                {/* Modal content - will update later */}
                 <div className="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
                   <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-purple-900">Question {selectedQuestion}</h2>
@@ -401,74 +255,28 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                       </svg>
                     </Button>
                   </div>
-
+                  
+                  {/* Question detail content */}
                   <div className="space-y-6">
                     <div className="bg-purple-50 p-4 rounded-lg">
                       <h3 className="font-medium text-purple-900 mb-2">
-                        {roomData.questions[selectedQuestion - 1]?.text || "Question text"}
+                        {questions[selectedQuestion - 1]?.question || "Question text"}
                       </h3>
                       <div className="flex items-center text-sm text-purple-700">
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium mr-2">
-                          {roomData.questions[selectedQuestion - 1]?.type || "Multiple choice"}
+                          {questions[selectedQuestion - 1]?.type || "Multiple choice"}
                         </span>
                         <span>
-                          Correct answer: {roomData.questions[selectedQuestion - 1]?.correctAnswer || "Not available"}
+                          Correct answer: {
+                            typeof questions[selectedQuestion - 1]?.answer === 'object' 
+                              ? JSON.stringify(questions[selectedQuestion - 1]?.answer) 
+                              : questions[selectedQuestion - 1]?.answer || "Not available"
+                          }
                         </span>
                       </div>
                     </div>
 
-                    <div>
-                      <h3 className="font-medium text-purple-900 mb-3">Student Performance</h3>
-                      <div className="flex items-center mb-4">
-                        <div className="w-full h-3 bg-purple-100 rounded-full mr-2">
-                          <div className="h-full bg-green-500 rounded-full" style={{ width: `60%` }}></div>
-                        </div>
-                        <span className="text-purple-900 font-medium">60% correct</span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white border border-purple-100 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-purple-800 mb-2">Correct Answers</h4>
-                          <div className="text-3xl font-bold text-green-600">12</div>
-                          <div className="text-sm text-purple-700">out of 20 students</div>
-                        </div>
-                        <div className="bg-white border border-purple-100 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-purple-800 mb-2">Incorrect Answers</h4>
-                          <div className="text-3xl font-bold text-red-500">8</div>
-                          <div className="text-sm text-purple-700">out of 20 students</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-medium text-purple-900 mb-3">Answer Distribution</h3>
-                      <div className="space-y-2">
-                        {(roomData.questions[selectedQuestion - 1]?.options || ["A", "B", "C", "D"]).map(
-                          (option, index) => (
-                            <div key={index} className="flex items-center">
-                              <div className="w-8 text-purple-900 font-medium">{option}</div>
-                              <div className="flex-1 mx-2">
-                                <div className="h-8 bg-purple-100 rounded-md relative">
-                                  <div
-                                    className={`h-full ${option === roomData.questions[selectedQuestion - 1]?.correctAnswer ? "bg-green-500" : "bg-purple-300"} rounded-md`}
-                                    style={{
-                                      width: `${option === roomData.questions[selectedQuestion - 1]?.correctAnswer ? "60%" : "20%"}`,
-                                    }}
-                                  ></div>
-                                  <span className="absolute inset-0 flex items-center justify-end pr-3 text-sm font-medium text-purple-900">
-                                    {option === roomData.questions[selectedQuestion - 1]?.correctAnswer ? "60%" : "20%"}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="w-10 text-right text-purple-900 font-medium">
-                                {option === roomData.questions[selectedQuestion - 1]?.correctAnswer ? "12" : "4"}
-                              </div>
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    </div>
-
+                    {/* Placeholder statistics */}
                     <div className="flex justify-end gap-3 pt-4 border-t border-purple-100">
                       <Button
                         variant="outline"
@@ -477,9 +285,6 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                       >
                         Close
                       </Button>
-                      <Button className="bg-purple-600 hover:bg-purple-700">
-                        <Edit className="h-4 w-4 mr-1" /> Edit Question
-                      </Button>
                     </div>
                   </div>
                 </div>
@@ -487,7 +292,9 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
             )}
           </TabsContent>
 
+          {/* Keeping the rest of the tabs as is for now */}
           <TabsContent value="questions" className="m-0">
+            {/* Questions tab content */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-purple-900">Quiz Questions</h2>
               <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowAddQuestion(true)}>
@@ -496,95 +303,107 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
             </div>
 
             <div className="space-y-4">
-              {roomData.questions.map((question, index) => (
-                <Card key={question.id} className="bg-white/90 backdrop-blur-sm border-purple-100 p-4">
-                  <div className="flex justify-between">
-                    <div className="flex items-start">
-                      <div className="bg-purple-100 text-purple-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="flex items-center mb-1">
-                          <span
-                            className={cn(
-                              "px-2 py-0.5 rounded-full text-xs font-medium mr-2",
-                              question.type === "multiple-choice"
-                                ? "bg-indigo-100 text-indigo-800"
-                                : question.type === "true-false"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-purple-100 text-purple-800",
-                            )}
-                          >
-                            {question.type === "multiple-choice"
-                              ? "Multiple Choice"
-                              : question.type === "true-false"
-                                ? "True/False"
-                                : "Short Answer"}
-                          </span>
+              {questions.length > 0 ? (
+                questions.map((question, index) => (
+                  <Card key={question.id} className="bg-white/90 backdrop-blur-sm border-purple-100 p-4">
+                    <div className="flex justify-between">
+                      <div className="flex items-start">
+                        <div className="bg-purple-100 text-purple-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                          {index + 1}
                         </div>
-                        <h3 className="text-purple-900 font-medium">{question.text}</h3>
+                        <div>
+                          <div className="flex items-center mb-1">
+                            <span
+                              className={cn(
+                                "px-2 py-0.5 rounded-full text-xs font-medium mr-2",
+                                question.type === "multiple-choice"
+                                  ? "bg-indigo-100 text-indigo-800"
+                                  : question.type === "true-false"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-purple-100 text-purple-800",
+                              )}
+                            >
+                              {question.type}
+                            </span>
+                          </div>
+                          <h3 className="text-purple-900 font-medium">{question.question}</h3>
 
-                        {question.type !== "short-answer" && (
-                          <div className="mt-2 space-y-1">
-                            {question.options.map((option, optIndex) => (
-                              <div key={optIndex} className="flex items-center">
-                                {option === question.correctAnswer ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                                ) : (
-                                  <XCircle className="h-4 w-4 text-gray-400 mr-2" />
-                                )}
-                                <span
-                                  className={
-                                    option === question.correctAnswer ? "text-green-800 font-medium" : "text-purple-800"
-                                  }
-                                >
-                                  {option}
+                          {question.type !== "short-answer" && Array.isArray(question.options) && (
+                            <div className="mt-2 space-y-1">
+                              {question.options.map((option, optIndex) => (
+                                <div key={optIndex} className="flex items-center">
+                                  {JSON.stringify(option) === JSON.stringify(question.answer) ? (
+                                    <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                                  ) : (
+                                    <XCircle className="h-4 w-4 text-gray-400 mr-2" />
+                                  )}
+                                  <span
+                                    className={
+                                      JSON.stringify(option) === JSON.stringify(question.answer) 
+                                        ? "text-green-800 font-medium" 
+                                        : "text-purple-800"
+                                    }
+                                  >
+                                    {typeof option === 'object' ? JSON.stringify(option) : option}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {question.type === "short-answer" && (
+                            <div className="mt-2">
+                              <div className="flex items-center">
+                                <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                                <span className="text-green-800 font-medium">
+                                  {typeof question.answer === 'object' 
+                                    ? JSON.stringify(question.answer) 
+                                    : question.answer}
                                 </span>
                               </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {question.type === "short-answer" && (
-                          <div className="mt-2">
-                            <div className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                              <span className="text-green-800 font-medium">{question.correctAnswer}</span>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex">
+                        <Button variant="ghost" size="sm" className="h-8 px-2 text-purple-700">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 px-2 text-red-500">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                          </svg>
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex">
-                      <Button variant="ghost" size="sm" className="h-8 px-2 text-purple-700">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 px-2 text-red-500">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M3 6h18"></path>
-                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center p-8 bg-white/70 rounded-lg border border-purple-100">
+                  <p className="text-purple-700 mb-4">No questions have been added to this quiz yet.</p>
+                  <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setShowAddQuestion(true)}>
+                    <PlusCircle className="h-4 w-4 mr-2" /> Add Your First Question
+                  </Button>
+                </div>
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="settings" className="m-0">
+            {/* Settings tab content - keeping as is for now */}
             <Card className="bg-white/90 backdrop-blur-sm border-purple-100 p-6">
               <h2 className="text-xl font-semibold text-purple-900 mb-6">Room Settings</h2>
 
@@ -593,7 +412,11 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                   <div>
                     <label className="block text-sm font-medium text-purple-800 mb-1">Room Duration</label>
                     <div className="flex gap-2">
-                      <Input type="number" defaultValue="30" className="bg-white/80 border-purple-200" />
+                      <Input 
+                        type="number" 
+                        defaultValue={room.duration || 30} 
+                        className="bg-white/80 border-purple-200" 
+                      />
                       <select className="rounded-md border border-purple-200 bg-white/80 px-3 py-2 text-sm">
                         <option>minutes</option>
                         <option>hours</option>
@@ -604,7 +427,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                   <div>
                     <label className="block text-sm font-medium text-purple-800 mb-1">Room Code</label>
                     <div className="flex gap-2">
-                      <Input defaultValue={roomData.roomCode} className="bg-white/80 border-purple-200" />
+                      <Input defaultValue={roomCode} className="bg-white/80 border-purple-200" />
                       <Button className="bg-purple-600 hover:bg-purple-700">Regenerate</Button>
                     </div>
                   </div>
@@ -618,7 +441,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
                       <h4 className="text-purple-800 font-medium">Shuffle Questions</h4>
                       <p className="text-purple-700 text-sm">Present questions in random order to each student</p>
                     </div>
-                    <Switch />
+                    <Switch defaultChecked={room.randomizeQuestions} />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -657,7 +480,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
         </Tabs>
       </div>
 
-      {/* Add Question Modal */}
+      {/* Add Question Modal - keeping as is for now */}
       {showAddQuestion && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
@@ -681,7 +504,7 @@ export default function RoomDetails({ params }: { params: { id: string } }) {
               </Button>
             </div>
 
-            <QuestionCreator onClose={() => setShowAddQuestion(false)} />
+            <QuestionCreator onClose={() => setShowAddQuestion(false)} roomId={room.id} />
           </div>
         </div>
       )}

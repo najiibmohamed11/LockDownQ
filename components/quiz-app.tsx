@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { getQuestions, submitAnswer } from "@/app/actions/quiz";
+import { checkIfTheRoomExist, getQuestions, submitAnswer } from "@/app/actions/quiz";
 import { QuizResults } from "@/app/student/quiz/QuizResults";
 import QuizSkeleton from "./quizSkeleton";
 
@@ -31,6 +31,23 @@ export default function QuizApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const pathname = usePathname();
+  const router=useRouter()
+
+
+   useEffect(()=>{
+        const checkRoom=async()=>{
+          const {exist,message,room}=await checkIfTheRoomExist(pathname.split('/')[3])
+          console.log(message)
+          if(!exist){
+            router.push(`/student/${pathname.split('/')[3]}/student-info`)
+          }
+          console.log(room)
+        }
+        checkRoom()
+      
+    },[])
+
+
 
   useEffect(() => {  
     const fetchQuestions = async () => {
@@ -56,13 +73,13 @@ export default function QuizApp() {
         }
 
         // Type assertion to handle the database response
-        const typedQuestions = questionsResponse.map((q) => ({
+        const typedQuestions = questionsResponse.map((q,index) => ({
           ...q,
           options: Array.isArray(q.options) ? q.options : [],
           answer: q.answer,
         })) as Question[];
 
-        setQuestions(typedQuestions);
+        setQuestions(shuffle(typedQuestions));
       } catch (err) {
         setError("An unexpected error occurred");
         console.error("Error fetching questions:", err);
@@ -72,6 +89,15 @@ export default function QuizApp() {
     fetchQuestions();
   }, [pathname]);
 
+
+  function shuffle(array:Question[]) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+  
   const handleAnswerSelect = (answer: string | number) => {
     if (isAnswered) return;
     setSelectedAnswer(answer);

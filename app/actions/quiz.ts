@@ -5,7 +5,7 @@ import { rooms, questions, participants } from "@/app/db/schema";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { error } from "console";
 
 export type CreateRoomData = {
@@ -257,7 +257,8 @@ export  const checkIfTheRoomExist=async(roomId:string)=>{
       console.log(room)
       return{
         exist:room.length>0,
-        message:"not exist"
+        message:"not exist",
+        room:room
       }
     }catch(e){
     console.log(e)
@@ -266,5 +267,46 @@ export  const checkIfTheRoomExist=async(roomId:string)=>{
       message:"there is issue"
 
       }
+    }
+  }
+
+
+
+
+
+  export async function getRoomDetails(roomId: string,ownerId:string) {
+    try {
+      // Get room details
+      const room = await db
+        .select()
+        .from(rooms)
+        .where(and(eq(rooms.id, roomId),eq(rooms.owner,ownerId)))
+        .then((res) => res[0]);
+  
+      if (!room) {
+        throw new Error("Room not found");
+      }
+  
+      // Get questions for the room
+      const roomQuestions = await db
+        .select()
+        .from(questions)
+        .where(eq(questions.roomId, roomId));
+  
+      // Get participants for the room
+      const roomParticipants = await db
+        .select()
+        .from(participants)
+        .where(eq(participants.roomId, roomId));
+    
+  
+      return {
+        room,
+        questions: roomQuestions,
+        participants: roomParticipants,
+      };
+    } catch (error) {
+      console.error("Error fetching room details:", error);
+      throw error;
     }
   }
