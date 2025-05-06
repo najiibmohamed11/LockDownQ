@@ -28,7 +28,6 @@ export function RoomInfo({
 
 }: RoomInfoProps) {
 
-  console.log("loging in the server")
 
   return (
        <Card className="bg-white/90 backdrop-blur-sm border-purple-100 mb-6 p-6">
