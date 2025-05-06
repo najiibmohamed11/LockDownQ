@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Eye } from "lucide-react";
@@ -18,7 +18,7 @@ export default function ParticipantsTab({ questions, participants }) {
       answer => answer.decision === true
     ).length;
     
-    return Math.round((correctAnswers / Object.keys(participant.options).length) * 100);
+    return Math.round((correctAnswers / questions.length) * 100);
   };
 
   // Function to get correct/incorrect status for each question
@@ -103,7 +103,9 @@ export default function ParticipantsTab({ questions, participants }) {
           <tbody>
             {participants.length > 0 ? (
               participants.map((student) => (
-                <>
+                <React.Fragment                 
+                    key={student.id} 
+>
                   <tr 
                     key={student.id} 
                     className={cn(
@@ -160,7 +162,7 @@ export default function ParticipantsTab({ questions, participants }) {
                     </td>
                   </tr>
       
-                </>
+                </React.Fragment>
               ))
             ) : (
               <tr>

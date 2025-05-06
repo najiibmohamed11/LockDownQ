@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,19 +5,7 @@ import { PlusCircle, Search } from "lucide-react";
 import { OwlLogo } from "@/components/owl-logo";
 import { UserProfile } from "@/components/profile";
 
-interface TeacherHeaderProps {
-  onSearch?: (query: string) => void;
-  onCreateRoom?: () => void;
-}
-
-export function TeacherHeader({ onSearch, onCreateRoom }: TeacherHeaderProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    onSearch?.(query);
-  };
+export function TeacherHeader() {
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -39,8 +24,7 @@ export function TeacherHeader({ onSearch, onCreateRoom }: TeacherHeaderProps) {
           <Input
             placeholder="Search rooms..."
             className="pl-10 bg-white/80 border-purple-200 w-full"
-            value={searchQuery}
-            onChange={handleSearch}
+           
           />
         </div>
         <Link href="/teacher/creat-room">
