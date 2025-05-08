@@ -3,6 +3,7 @@ import { Users, Clock, Pause, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import CopyRoomUrl from "./CopyRoomUrl"
+import PauseAndResume from "./PauseAndResume"
 
 interface RoomInfoProps {
   room: {
@@ -16,7 +17,7 @@ interface RoomInfoProps {
   }
   participants: any[]
   questions: any[]
-  roomStatus: string
+  roomId:string
 
 }
 
@@ -24,7 +25,7 @@ export function RoomInfo({
   room,
   participants,
   questions,
-  roomStatus,
+  roomId
 
 }: RoomInfoProps) {
 
@@ -90,25 +91,7 @@ export function RoomInfo({
            <div className="flex flex-col space-y-2">
          
 
-             <Button
-               variant="outline"
-               className={cn(
-                 "w-full",
-                 roomStatus === "active"
-                   ? "border-amber-600 text-amber-700 hover:bg-amber-100"
-                   : "border-green-600 text-green-700 hover:bg-green-100",
-               )}
-             >
-               {roomStatus === "active" ? (
-                 <>
-                   <Pause className="h-4 w-4 mr-2" /> Pause Room
-                 </>
-               ) : (
-                 <>
-                   <Play className="h-4 w-4 mr-2" /> Resume Room
-                 </>
-               )}
-             </Button>
+            <PauseAndResume roomStatus={room.status||""} roomId={roomId} />
            </div>
          </div>
        </div>

@@ -28,9 +28,8 @@ export async function RoomGrid() {
           .select()
           .from(rooms)
           .where(eq(rooms.owner, user.id))
-          .orderBy(rooms.created_at);
-    
-    
+          .orderBy(rooms.created_at);        
+
 
   if (!result) {
     return (
@@ -90,7 +89,7 @@ export async function RoomGrid() {
 
                     <div className="flex items-center text-purple-800 ">
                     <CircleHelp className="h-4 w-4 mr-2"/>
-                        <span className="ml-2">{room.numberOfQuestions || 0} questions</span>
+                        <span >{room.numberOfQuestions || 0} questions</span>
                     </div>
 
                     {

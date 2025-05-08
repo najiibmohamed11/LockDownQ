@@ -10,7 +10,7 @@ function CopyRoomUrl() {
     const path=usePathname()
 
     const handleCopyCode=()=>{
-        navigator.clipboard.writeText(`https://quiz-app-sepia-gamma.vercel.app/student/${path.split('/')[3]}`);
+        navigator.clipboard.writeText(`https://quiz-app-sepia-gamma.vercel.app/student/${path.split('/')[3]}/student-info`);
         setCopiedCode(true);
         setTimeout(() => setCopiedCode(false), 2000);
 

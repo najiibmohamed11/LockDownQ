@@ -51,7 +51,7 @@ export default async function RoomDetails({ params }: { params: { id: string } }
             room={room}
             participants={participants}
             questions={questions}
-            roomStatus="true"
+            roomId={id}
           />
 
           {/* Tabs */}

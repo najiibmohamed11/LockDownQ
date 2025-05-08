@@ -10,6 +10,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { checkIfTheRoomExist, getQuestions, submitAnswer } from "@/app/actions/quiz";
 import { QuizResults } from "@/app/student/quiz/QuizResults";
 import QuizSkeleton from "./quizSkeleton";
+import QuizWaiting from "./QuizWaiting";
 
 interface Question {
   id: string;
@@ -34,19 +35,30 @@ export default function QuizApp() {
   const router=useRouter()
 
 
-   useEffect(()=>{
-        const checkRoom=async()=>{
-          const {exist,message,room}=await checkIfTheRoomExist(pathname.split('/')[3])
-          console.log(message)
-          if(!exist){
-            router.push(`/student/${pathname.split('/')[3]}/student-info`)
-          }
-          console.log(room)
-        }
-        checkRoom()
+   useEffect(() => {
+    const checkRoom = async () => {
+      const { exist, message, room } = await checkIfTheRoomExist(pathname.split('/')[3])
+      console.log(message)
       
-    },[])
+      if (!exist) {
+        router.push(`/student/${pathname.split('/')[3]}/student-info`)
+        return
+      }
+      console.log(room)
 
+      if (room?.status === 'finish') {
+        router.push(`/student/${pathname.split('/')[3]}/student-info`)
+        return
+      }
+      if (room?.status === 'pause') {
+        setError("This quiz is currently paused by the teacher. Please wait for it to resume.")
+        return
+      }
+
+
+    }
+    checkRoom()
+  }, [pathname, router])
 
 
   useEffect(() => {  
@@ -61,17 +73,14 @@ export default function QuizApp() {
         const { success, message, questionsResponse } = await getQuestions(
           roomId
         );
-
         if (!success) {
           setError(message || "Failed to fetch questions");
           return;
         }
-
         if (!questionsResponse || !Array.isArray(questionsResponse)) {
           setError("Invalid questions data");
           return;
         }
-
         // Type assertion to handle the database response
         const typedQuestions = questionsResponse.map((q,index) => ({
           ...q,
@@ -89,29 +98,24 @@ export default function QuizApp() {
     fetchQuestions();
   }, [pathname]);
 
-
   function shuffle(array:Question[]) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
-  }
-  
+  }  
   const handleAnswerSelect = (answer: string | number) => {
     if (isAnswered) return;
     setSelectedAnswer(answer);
   };
-
   const handleNextQuestion = async () => {
     if (selectedAnswer === null) {
       setError("Please select an answer");
       return;
     }
-
     setIsLoading(true);
     setError("");
-
     try {
       const studentId = pathname.split("/")[4];
       const questionId = questions[currentQuestion].id;
@@ -120,7 +124,6 @@ export default function QuizApp() {
         setError("Invalid student or question ID");
         return;
       }
-
       // Update the question with user's answer
       setQuestions((prevQuestions) => {
         const newQuestions = [...prevQuestions];
@@ -160,13 +163,16 @@ export default function QuizApp() {
     }
   };
 
+  if (error) {
+   return     <QuizWaiting/>
+               
+  }
   if (questions.length === 0) {
     return <QuizSkeleton/>
-  }
+  } 
 
-  if (error) {
-    return <div className="text-center p-4 text-red-500">{error}</div>;
-  }
+      
+   
 
   const currentQ = questions[currentQuestion];
 

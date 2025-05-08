@@ -103,6 +103,7 @@ export async function getRooms(ownerId: string) {
       .from(rooms)
       .where(eq(rooms.owner, ownerId))
       .orderBy(rooms.created_at);
+      
 
     return { success: true, rooms: allRooms };
   } catch (error) {
@@ -148,6 +149,7 @@ export async function isRoomExists(roomName: string) {
       exists: existingRooms.length > 0,
       error: null,
       roomId: existingRooms.length > 0 ? existingRooms[0].id : null,
+      roomStatus: existingRooms.length > 0 ? existingRooms[0].status : null,
     };
   } catch (error) {
     console.error("Error checking room existence:", error);
@@ -258,7 +260,7 @@ export  const checkIfTheRoomExist=async(roomId:string)=>{
       return{
         exist:room.length>0,
         message:"not exist",
-        room:room
+        room:room[0]
       }
     }catch(e){
     console.log(e)
@@ -297,8 +299,7 @@ export  const checkIfTheRoomExist=async(roomId:string)=>{
       const roomParticipants = await db
         .select()
         .from(participants)
-        .where(eq(participants.roomId, roomId));
-    
+        .where(eq(participants.roomId, roomId));    
   
       return {
         room,
@@ -310,3 +311,21 @@ export  const checkIfTheRoomExist=async(roomId:string)=>{
       throw error;
     }
   }
+
+
+  export const changeRoomStatus=async(newStatus:string,roomId:string)=>{
+    if(!newStatus||!roomId){
+      return {success:false,message:"mssing required feld"};
+    }
+    const resualt=await db
+    .update(rooms)
+    .set({status:newStatus})
+    .where(eq(rooms.id,roomId))
+    return{
+      success:true,
+      message:"success full"
+    }
+  }
+
+
+  
