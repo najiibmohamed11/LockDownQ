@@ -41,17 +41,16 @@ export default function QuizApp() {
       console.log(message)
       
       if (!exist) {
-        router.push(`/student/${pathname.split('/')[3]}/student-info`)
+        router.push(`/student`)
         return
       }
-      console.log(room)
 
       if (room?.status === 'finish') {
         router.push(`/student/${pathname.split('/')[3]}/student-info`)
         return
       }
       if (room?.status === 'pause') {
-        setError("This quiz is currently paused by the teacher. Please wait for it to resume.")
+        setError("This quiz is paused")
         return
       }
 
@@ -98,6 +97,11 @@ export default function QuizApp() {
     fetchQuestions();
   }, [pathname]);
 
+
+
+
+
+
   function shuffle(array:Question[]) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -105,10 +109,17 @@ export default function QuizApp() {
     }
     return array;
   }  
+
+
+
   const handleAnswerSelect = (answer: string | number) => {
     if (isAnswered) return;
     setSelectedAnswer(answer);
   };
+
+
+
+
   const handleNextQuestion = async () => {
     if (selectedAnswer === null) {
       setError("Please select an answer");
@@ -138,7 +149,8 @@ export default function QuizApp() {
         studentId,
         questionId,
         selectedAnswer,
-        questions[currentQuestion].answer
+        questions[currentQuestion].answer,
+        pathname.split("/")[3]
       );
 
       if (!success) {
@@ -163,10 +175,15 @@ export default function QuizApp() {
     }
   };
 
-  if (error) {
+  if (error=="This quiz is paused") {
    return     <QuizWaiting/>
                
   }
+
+  if(error){
+    return <div>{error}</div>
+  }
+  
   if (questions.length === 0) {
     return <QuizSkeleton/>
   } 

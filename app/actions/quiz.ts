@@ -190,7 +190,8 @@ export const submitAnswer = async (
   participantId: string,
   questionId: string,
   answer: string | number,
-  corectAnswer: number | string
+  corectAnswer: number | string,
+  roomid:string
 ) => {
   // Input validation
   if (!participantId || !questionId) {
@@ -221,6 +222,23 @@ export const submitAnswer = async (
         message: "Participant not found",
       };
     }
+
+        const isRoomValid = await db
+      .select()
+      .from(rooms)
+      .where(eq(rooms.id, roomid))
+      .then((rows) => rows[0]);
+
+      if(isRoomValid.status=="pause"){
+        return {
+        success: false,
+        message: "This quiz is paused",
+      };
+      }
+      if(isRoomValid.status=="finish"){
+       redirect(`/student`);  
+      }
+      console.log(isRoomValid.status)
 
     const decision = typeof answer === "number" ? answer == corectAnswer : null;
 
