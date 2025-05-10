@@ -59,12 +59,9 @@ function PauseAndResume({ roomStatus, roomId }: PauseAndResumeProps) {
       
       if (!success) {
         throw new Error(message || 'Failed to update room status')
-      }
-      
+      }    
       // Update local state optimistically
       setCurrentStatus(newStatus)
-      
-
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

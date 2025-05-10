@@ -31,14 +31,12 @@ export default function SignInPage() {
                 Sign in to continue to your account
               </p>
             </div>
-            <SignIn.Step name="start" className="flex justify-center items-center">
+            <SignIn.Step name="start" className="flex justify-center items-center ">
               <Clerk.Connection name="google">
                 <Clerk.Loading scope="provider:google">
                   {(isLoading) => (
-                    <Button
-                      className="w-full h-12 bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 flex items-center justify-center gap-3 rounded-xl transition-all duration-300 hover:shadow-md"
-                      variant="outline"
-                      disabled={isLoading}
+                    <div
+                      className="w-full h-12 bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 flex items-center p-4 justify-center gap-3 rounded-xl transition-all duration-300 hover:shadow-md"
                     >
                       {isLoading ? (
                         <div className="flex items-center gap-2">
@@ -70,7 +68,7 @@ export default function SignInPage() {
                           </span>
                         </>
                       )}
-                    </Button>
+                    </div>
                   )}
                 </Clerk.Loading>
               </Clerk.Connection>

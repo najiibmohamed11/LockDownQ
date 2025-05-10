@@ -2,11 +2,9 @@
 
 import { db } from "@/app/db/drizzle";
 import { rooms, questions, participants } from "@/app/db/schema";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { and, eq } from "drizzle-orm";
-import { error } from "console";
 
 export type CreateRoomData = {
   roomName: string;

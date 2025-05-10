@@ -49,15 +49,15 @@ export default function StudentInfo() {
       const result = await CreatParticipent(name,pathname.split('/')[2]);
       if (result.success) {
         router.push(`/student/quiz/${pathname.split('/')[2]}/${result.data.id}`);
+        setIsLoading(false)
       }
-      setIsLoading(false)
     } catch (error) {
-      setIsLoading(false)
       setError(
         error instanceof Error
           ? error.message
           : "There was an issue. Please try again."
       );
+      setIsLoading(false)
       console.error(error);
     }
   };
@@ -129,7 +129,7 @@ export default function StudentInfo() {
               </div>
 
               {error && (
-                <div className="bg-red-100 text-red-800 px-3 py-2 rounded-md text-sm"></div>
+                <div className="bg-red-100 text-red-800 px-3 py-2 rounded-md text-sm flex justify-center">{error}</div>
               )}
             <div className="relative w-full">
               <Button

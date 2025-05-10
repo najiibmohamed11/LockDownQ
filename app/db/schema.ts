@@ -8,7 +8,6 @@ import {
   timestamp,
   jsonb,
 } from "drizzle-orm/pg-core";
-import { number } from "framer-motion";
 
 const timestamps = {
   updated_at: timestamp(),
