@@ -91,6 +91,12 @@ export default function QuizApp() {
         })) as Question[];
         console.log(typedQuestions)
 
+        if(typedQuestions.length===0){
+          setQuestions(pastQuestions)
+          setShowResults(true)
+          return
+        }
+
         setQuestions(shuffle(typedQuestions));
         setProgress(progressLength)
         setPastquestions(pastQuestions)
