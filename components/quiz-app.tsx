@@ -23,6 +23,7 @@ interface Question {
 
 export default function QuizApp() {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [pastquestions, setPastquestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [progress, setProgress] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | number | null>(
@@ -71,7 +72,7 @@ export default function QuizApp() {
           return;
         }
 
-        const { success, message, questionsResponse, progressLenght } = await getQuestions(
+        const { success, message, questionsResponse, progressLength,pastQuestions } = await getQuestions(
           roomId,userId
         );
         if (!success) {
@@ -88,9 +89,11 @@ export default function QuizApp() {
           options: Array.isArray(q.options) ? q.options : [],
           answer: q.answer,
         })) as Question[];
+        console.log(typedQuestions)
 
         setQuestions(shuffle(typedQuestions));
-        setProgress(progressLenght)
+        setProgress(progressLength)
+        setPastquestions(pastQuestions)
       } catch (err) {
         setError("An unexpected error occurred");
         console.error("Error fetching questions:", err);
@@ -143,10 +146,11 @@ export default function QuizApp() {
         const newQuestions = [...prevQuestions];
         newQuestions[currentQuestion] = {
           ...newQuestions[currentQuestion],
-          userAnswer: selectedAnswer,
+          userAnswer: selectedAnswer.toString(),
         };
         return newQuestions;
       });
+
 
       const { success, message } = await submitAnswer(
         studentId,
@@ -169,6 +173,7 @@ export default function QuizApp() {
       } else {
         // Quiz is finished, show results
         setShowResults(true);
+        setQuestions((prev)=>[...prev,...pastquestions])
       }
     } catch (err) {
       setError("An unexpected error occurred");
