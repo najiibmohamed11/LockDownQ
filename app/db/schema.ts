@@ -38,7 +38,7 @@ export const questions = pgTable("questions", {
   type: varchar("type", { length: 50 }).notNull(),
   question: text("question").notNull(),
   options: jsonb("options").default([]),
-  answer: jsonb("answer").notNull(),
+  answer: varchar("answer").notNull(),
   ...timestamps,
 });
 

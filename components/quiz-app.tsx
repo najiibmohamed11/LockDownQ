@@ -23,7 +23,9 @@ interface Question {
 
 export default function QuizApp() {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [pastquestions, setPastquestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | number | null>(
     null
   );
@@ -64,13 +66,14 @@ export default function QuizApp() {
     const fetchQuestions = async () => {
       try {
         const roomId = pathname.split("/")[3];
+        const userId = pathname.split("/")[4];
         if (!roomId) {
           setError("Invalid room ID");
           return;
         }
 
-        const { success, message, questionsResponse } = await getQuestions(
-          roomId
+        const { success, message, questionsResponse, progressLength,pastQuestions } = await getQuestions(
+          roomId,userId
         );
         if (!success) {
           setError(message || "Failed to fetch questions");
@@ -86,8 +89,11 @@ export default function QuizApp() {
           options: Array.isArray(q.options) ? q.options : [],
           answer: q.answer,
         })) as Question[];
+        console.log(typedQuestions)
 
         setQuestions(shuffle(typedQuestions));
+        setProgress(progressLength)
+        setPastquestions(pastQuestions)
       } catch (err) {
         setError("An unexpected error occurred");
         console.error("Error fetching questions:", err);
@@ -140,10 +146,11 @@ export default function QuizApp() {
         const newQuestions = [...prevQuestions];
         newQuestions[currentQuestion] = {
           ...newQuestions[currentQuestion],
-          userAnswer: selectedAnswer,
+          userAnswer: selectedAnswer.toString(),
         };
         return newQuestions;
       });
+
 
       const { success, message } = await submitAnswer(
         studentId,
@@ -166,6 +173,7 @@ export default function QuizApp() {
       } else {
         // Quiz is finished, show results
         setShowResults(true);
+        setQuestions((prev)=>[...prev,...pastquestions])
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -209,7 +217,7 @@ export default function QuizApp() {
               <div className="p-4 sm:p-8">
                 <div className="flex justify-between items-center mb-4 sm:mb-6">
                   <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-secondary rounded-full text-secondary-foreground text-sm sm:text-base font-medium">
-                    Question {currentQuestion + 1}/{questions.length}
+                    Question {currentQuestion+progress + 1}/{questions.length+progress}
                   </div>
                 </div>
 
@@ -245,8 +253,7 @@ export default function QuizApp() {
                             : "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
                           "border-2 text-sm sm:text-base"
                         )}
-                        disabled={isAnswered}
-                      >
+                        disabled={isAnswered} >
                         <div className="flex items-center justify-between break-words whitespace-pre-wrap">
                           <span>{option}</span>
                         </div>

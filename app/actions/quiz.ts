@@ -3,8 +3,22 @@
 import { db } from "@/app/db/drizzle";
 import { rooms, questions, participants } from "@/app/db/schema";
 import { redirect } from "next/navigation";
-
+import { InferSelectModel } from "drizzle-orm";
 import { and, eq } from "drizzle-orm";
+
+interface Question {
+  id: string;
+  type: string;
+  question: string;
+  options: string[];
+  answer: string | number;
+  userAnswer?: string | number;
+}
+
+type DBQuestion = InferSelectModel<typeof questions>;
+// Assuming it's like: { [questionId: string]: { option: string | number } }
+type ParticipantOptions = Record<string, { option: string | number }>;
+
 
 export type CreateRoomData = {
   roomName: string;
@@ -158,25 +172,60 @@ export async function isRoomExists(roomName: string) {
   }
 }
 
-export const getQuestions = async (roomId: string) => {
+export const getQuestions = async (roomId: string, participantId: string) => {
   if (!roomId) {
     return {
       success: false,
-      message: "please profide room id",
+      message: "please provide room id",
     };
   }
 
   try {
+    // Get participant options
+    const participantOptionsResult = await db
+      .select({ options: participants.options })
+      .from(participants)
+      .where(eq(participants.id, participantId));
+
+    const participantProgress = participantOptionsResult[0]
+      ?.options as ParticipantOptions;
+
+
+
+    // Get questions
     const questionsResponse = await db
       .select()
       .from(questions)
       .where(eq(questions.roomId, roomId));
 
+    const typedQuestions = questionsResponse.map((q): Question => ({
+      id: q.id,
+      type: q.type,
+      question: q.question,
+      options: Array.isArray(q.options) ? q.options : [],
+      answer: q.answer,
+    }));
+
+    const pastQuestions: Question[] = [];
+    const filteredQuestions: Question[] = [];
+
+    for (const question of typedQuestions) {
+      const progress = participantProgress[question.id];
+      if (progress) {
+        pastQuestions.push({ ...question, userAnswer: progress.option });
+      } else {
+        filteredQuestions.push(question);
+      }
+    }
+    console.log(pastQuestions)
     return {
       success: true,
-      questionsResponse,
+      questionsResponse: filteredQuestions,
+      progressLength: Object.keys(participantProgress).length,
+      pastQuestions
     };
   } catch (e) {
+    console.error("getQuestions error:", e);
     return {
       success: false,
       message: "there is issue",
