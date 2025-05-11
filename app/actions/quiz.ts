@@ -158,7 +158,7 @@ export async function isRoomExists(roomName: string) {
   }
 }
 
-export const getQuestions = async (roomId: string) => {
+export const getQuestions = async (roomId: string,participantId:string) => {
   if (!roomId) {
     return {
       success: false,
@@ -167,14 +167,27 @@ export const getQuestions = async (roomId: string) => {
   }
 
   try {
+    const participantProgress=await db
+    .select({
+      options:participants.options
+    })
+    .from(participants)
+    .where(eq(participants.id,participantId))
+   .then((res) => Object.keys(res[0].options));
+
+    console.log(participantProgress)
+
+
     const questionsResponse = await db
       .select()
       .from(questions)
       .where(eq(questions.roomId, roomId));
 
+    const filtredQuestion= questionsResponse.filter((question)=>!participantProgress.includes(question.id))
     return {
       success: true,
-      questionsResponse,
+      questionsResponse:filtredQuestion,
+      progressLenght:participantProgress.length
     };
   } catch (e) {
     return {
