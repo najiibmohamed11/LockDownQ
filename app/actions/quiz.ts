@@ -25,10 +25,10 @@ export type CreateRoomData = {
   duration: string;
   owner: string;
   questions: {
-    type: string;
+    type: "mcq" | "true_false" | "short_answer";
     question: string;
     options: string[];
-    answer: number | string;
+    answer: string | number | number[];
   }[];
   settings: {
     restrictParticipants: boolean;
@@ -64,8 +64,11 @@ export async function createQuizRoom(data: CreateRoomData) {
         roomId: room.id,
         type: q.type,
         question: q.question,
-        options: q.type == "true_false" ? ["true", "false"] : q.options.filter((option)=>option!=""),
-        answer: q.answer,
+        options:
+          q.type === "true_false"
+            ? ["True", "False"]
+            : q.options.filter((option) => option != ""),
+        answer: q.type === "true_false" ? q.answer.toString() : q.answer,
       })
     );
 

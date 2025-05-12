@@ -3,7 +3,7 @@
 ## my todos 
 
 #all ways clean your ide allways clean your working dir aka commit any thing dont wait ok 
-- [] presistance quiz state for in progress or completed stuff tracking 
+- [x] presistance quiz state for in progress or completed stuff tracking 
 - [] quiz timer in student 
 - []
 
