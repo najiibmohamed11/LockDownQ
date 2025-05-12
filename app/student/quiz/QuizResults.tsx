@@ -181,19 +181,22 @@ export function QuizResults({ questions }: QuizResultsProps) {
                                   : "text-red-600"
                               }`}
                             >
-                              {q.options[q.userAnswer as number]}
+                              {q.type === "true_false"
+                                ? q.options[parseInt(q.userAnswer as string)]
+                                : q.options[q.userAnswer as number]}
                             </span>
                           </div>
-                          {q.userAnswer !== q.answer && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-500">
-                                Correct Answer:
-                              </span>
-                              <span className="text-sm font-medium text-green-600">
-                                {q.options[q.answer as number]}
-                              </span>
-                            </div>
-                          )}
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-500">
+                              Correct Answer:
+                            </span>
+                            <span className="text-sm font-medium text-green-600">
+                              {q.type === "true_false"
+                                ? q.options[parseInt(q.answer as string)]
+                                : q.options[q.answer as number]}
+                            </span>
+                          </div>
                         </div>
                       )}
 

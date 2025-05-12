@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Card,
   CardContent,
@@ -23,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -38,16 +39,23 @@ import {
   Users,
   AlignJustify,
   ArrowLeft,
+  X,
 } from "lucide-react";
 import { createQuizRoom, isRoomExists } from "@/app/actions/quiz";
 import { toast } from "sonner";
 import { useUser } from "@clerk/nextjs";
 
+// Question type definitions
+interface Question {
+  type: "mcq" | "true_false" | "short_answer"; // Updated to match backend
+  text: string;
+  options?: string[];
+  correctAnswer: string | number | number[];
+}
+
 export default function CreateRoom() {
   const [step, setStep] = useState(1);
-  const [questions, setQuestions] = useState([
-    { id: 1, type: "mcq", question: "", options: ["", "", "", ""], answer: 0 },
-  ]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [roomName, setRoomName] = useState("");
   const [duration, setDuration] = useState("");
   const [isNameValid, setIsNameValid] = useState(true);
@@ -60,48 +68,22 @@ export default function CreateRoom() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
 
-  const addQuestion = (type: string) => {
-    const newQuestion = {
-      id: questions.length + 1,
-      type,
-      question: "",
-      options: type === "mcq" ? ["", "", "", ""] : [],
-      answer: 0,
-    };
-    setQuestions([...questions, newQuestion]);
-  };
+  // Question form state
+  const [mcqQuestion, setMcqQuestion] = useState("");
+  const [mcqOptions, setMcqOptions] = useState(["", "", "", ""]);
+  const [mcqCorrectAnswers, setMcqCorrectAnswers] = useState<number[]>([]);
+  const [tfQuestion, setTfQuestion] = useState("");
+  const [tfCorrectAnswer, setTfCorrectAnswer] = useState<number | null>(null);
+  const [shortQuestion, setShortQuestion] = useState("");
+  const [shortAnswer, setShortAnswer] = useState("");
+  const [activeQuestionTab, setActiveQuestionTab] = useState("mcq");
 
-  const removeQuestion = (id: number) => {
-    setQuestions(questions.filter((q) => q.id !== id));
-  };
+  // Add this state at the top of your component with other state declarations
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
-  const updateQuestion = (id: number, field: string, value: any) => {
-    setQuestions(
-      questions.map((q) => {
-        if (q.id === id) {
-          return { ...q, [field]: value };
-        }
-        return q;
-      })
-    );
-  };
-
-  const updateOption = (
-    questionId: number,
-    optionIndex: number,
-    value: string
-  ) => {
-    setQuestions(
-      questions.map((q) => {
-        if (q.id === questionId) {
-          const newOptions = [...q.options];
-          newOptions[optionIndex] = value;
-          return { ...q, options: newOptions };
-        }
-        return q;
-      })
-    );
-  };
+  // Add this loading state at the top with other state declarations
+  const [isCreating, setIsCreating] = useState(false);
 
   const validateRoomName = async (name: string) => {
     // Reset error state
@@ -116,16 +98,23 @@ export default function CreateRoom() {
     }
 
     // Check if room exists
-    const { exists, error } = await isRoomExists(name);
+    try {
+      const { exists, error } = await isRoomExists(name);
 
-    if (error) {
-      setNameError("Failed to validate room name. Please try again.");
-      setIsNameValid(false);
-      return false;
-    }
+      if (error) {
+        setNameError("Failed to validate room name. Please try again.");
+        setIsNameValid(false);
+        return false;
+      }
 
-    if (exists) {
-      setNameError("A room with this name already exists");
+      if (exists) {
+        setNameError("A room with this name already exists");
+        setIsNameValid(false);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error validating room name:", error);
+      setNameError("An error occurred while validating the room name");
       setIsNameValid(false);
       return false;
     }
@@ -138,12 +127,20 @@ export default function CreateRoom() {
       // Validate room name before proceeding
       const isValid = await validateRoomName(roomName);
       if (!isValid) {
-        toast.error(
+        setErrorMessage(
           "Please fix the room name validation errors before proceeding"
         );
         return;
       }
     }
+
+    if (step === 2 && questions.length === 0) {
+      setErrorMessage("Please add at least one question before proceeding");
+      return;
+    }
+
+    // Clear any existing error when proceeding
+    setErrorMessage("");
     setStep(step + 1);
   };
 
@@ -153,15 +150,24 @@ export default function CreateRoom() {
 
   const handleSave = async () => {
     if (!user) {
-      toast.error("You must be logged in to create a room");
+      setErrorMessage("You must be logged in to create a room");
       return;
     }
 
+    setIsCreating(true); // Start loading
     try {
+      // Transform questions to match the expected format
+      const formattedQuestions = questions.map((q) => ({
+        type: q.type,
+        question: q.text,
+        options: q.options || [],
+        answer: q.correctAnswer,
+      }));
+
       const result = await createQuizRoom({
         roomName,
         duration,
-        questions,
+        questions: formattedQuestions,
         owner: user.id,
         settings: {
           restrictParticipants,
@@ -173,15 +179,161 @@ export default function CreateRoom() {
       });
 
       if (result.success) {
-        toast.success("Quiz room created successfully!");
-        // Use router for client-side navigation
-        router.push(result.redirectPath || "/teacher");
+        setErrorMessage("");
+        // Redirect after a short delay to show the success message
+        setTimeout(() => {
+          router.push("/teacher");
+        }, 1500);
       } else {
-        toast.error(result.error || "Failed to create quiz room");
+        setErrorMessage(result.error || "Failed to create quiz room");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      setErrorMessage("An unexpected error occurred");
       console.error(error);
+    } finally {
+      setIsCreating(false); // End loading
+    }
+  };
+
+  // MCQ Question Handlers
+  const handleAddMcqOption = () => {
+    if (mcqOptions.length < 8) {
+      setMcqOptions([...mcqOptions, ""]);
+    } else {
+      setErrorMessage("Maximum 8 options allowed");
+    }
+  };
+
+  const handleRemoveMcqOption = (index: number) => {
+    if (mcqOptions.length > 2) {
+      const newOptions = [...mcqOptions];
+      newOptions.splice(index, 1);
+      setMcqOptions(newOptions);
+
+      setMcqCorrectAnswers(
+        mcqCorrectAnswers
+          .filter((ansIndex) => ansIndex !== index)
+          .map((ansIndex) => (ansIndex > index ? ansIndex - 1 : ansIndex))
+      );
+    } else {
+      setErrorMessage("Minimum 2 options required");
+    }
+  };
+
+  const handleMcqOptionChange = (index: number, value: string) => {
+    const newOptions = [...mcqOptions];
+    newOptions[index] = value;
+    setMcqOptions(newOptions);
+  };
+
+  const handleMcqCorrectAnswerChange = (index: number, checked: boolean) => {
+    if (checked) {
+      setMcqCorrectAnswers([...mcqCorrectAnswers, index]);
+    } else {
+      setMcqCorrectAnswers(mcqCorrectAnswers.filter((i) => i !== index));
+    }
+  };
+
+  // Add Question Handlers
+  const addMcqQuestion = () => {
+    if (!mcqQuestion.trim()) {
+      setErrorMessage("Please enter a question");
+      return;
+    }
+
+    if (mcqOptions.some((opt) => !opt.trim())) {
+      setErrorMessage("All options must be filled");
+      return;
+    }
+
+    if (mcqCorrectAnswers.length === 0) {
+      setErrorMessage("Please select at least one correct answer");
+      return;
+    }
+
+    const newQuestion: Question = {
+      type: "mcq",
+      text: mcqQuestion,
+      options: mcqOptions,
+      correctAnswer: mcqCorrectAnswers,
+    };
+
+    setQuestions([...questions, newQuestion]);
+
+    // Reset form
+    setMcqQuestion("");
+    setMcqOptions(["", "", "", ""]);
+    setMcqCorrectAnswers([]);
+  };
+
+  const addTrueFalseQuestion = () => {
+    if (!tfQuestion.trim()) {
+      setErrorMessage("Please enter a question");
+      return;
+    }
+
+    if (tfCorrectAnswer === null) {
+      setErrorMessage("Please select the correct answer");
+      return;
+    }
+
+    const newQuestion: Question = {
+      type: "true_false",
+      text: tfQuestion,
+      correctAnswer: tfCorrectAnswer,
+    };
+
+    setQuestions([...questions, newQuestion]);
+
+    // Reset form
+    setTfQuestion("");
+    setTfCorrectAnswer(null);
+  };
+
+  const addShortAnswerQuestion = () => {
+    if (!shortQuestion.trim()) {
+      toast.error("Please enter a question");
+      return;
+    }
+
+    if (!shortAnswer.trim()) {
+      toast.error("Please enter the correct answer");
+      return;
+    }
+
+    const newQuestion: Question = {
+      type: "short_answer",
+      text: shortQuestion,
+      correctAnswer: shortAnswer,
+    };
+
+    setQuestions([...questions, newQuestion]);
+
+    // Reset form
+    setShortQuestion("");
+    setShortAnswer("");
+
+    toast.success("Short answer question added");
+  };
+
+  const deleteQuestion = (index: number) => {
+    const newQuestions = [...questions];
+    newQuestions.splice(index, 1);
+    setQuestions(newQuestions);
+    toast.success("Question deleted");
+  };
+
+  // First, add this helper function at the top of your component to format the correct answers
+  const formatCorrectAnswer = (question: Question) => {
+    if (question.type === "mcq") {
+      const answers = (question.correctAnswer as number[])
+        .map((index) => question.options?.[index])
+        .join(", ");
+      return `Correct: ${answers}`;
+    } else if (question.type === "true_false") {
+      return `Correct: ${question.correctAnswer}`;
+    } else {
+      return `Answer: ${question.correctAnswer}`;
     }
   };
 
@@ -200,6 +352,122 @@ export default function CreateRoom() {
           Create New Quiz Room
         </h1>
       </div>
+
+      {/* Error and Success Messages */}
+      {errorMessage && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-red-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{errorMessage}</p>
+            </div>
+            <div className="ml-auto pl-3">
+              <button
+                onClick={() => setErrorMessage("")}
+                className="inline-flex text-red-400 hover:text-red-500"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-green-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-green-700">{successMessage}</p>
+            </div>
+            <div className="ml-auto pl-3">
+              <button
+                onClick={() => setSuccessMessage("")}
+                className="inline-flex text-green-400 hover:text-green-500"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {isCreating && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div className="flex flex-col items-center space-y-4">
+              {/* Animated Loading Spinner */}
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 border-4 border-purple-200 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-purple-600 rounded-full animate-spin border-t-transparent"></div>
+              </div>
+
+              {/* Loading Text */}
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Creating Quiz Room
+                </h3>
+                <p className="text-gray-500">
+                  Please wait while we set up your quiz room...
+                </p>
+              </div>
+
+              {/* Progress Steps */}
+              <div className="w-full space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 rounded-full bg-purple-600 animate-pulse"></div>
+                  <span className="text-sm text-gray-600">
+                    Preparing questions
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-4 h-4 rounded-full bg-purple-600 animate-pulse"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                  <span className="text-sm text-gray-600">
+                    Setting up room settings
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-4 h-4 rounded-full bg-purple-600 animate-pulse"
+                    style={{ animationDelay: "0.4s" }}
+                  ></div>
+                  <span className="text-sm text-gray-600">
+                    Finalizing configuration
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mb-8">
         <div className="flex justify-between items-center">
@@ -291,6 +559,7 @@ export default function CreateRoom() {
             <Button
               onClick={handleNext}
               className="bg-purple-600 hover:bg-purple-700"
+              disabled={isCreating}
             >
               Continue to Questions
             </Button>
@@ -301,198 +570,317 @@ export default function CreateRoom() {
       {step === 2 && (
         <Card>
           <CardHeader>
-            <CardTitle>Create Questions</CardTitle>
+            <CardTitle>Add Quiz Questions</CardTitle>
             <CardDescription>
-              Add multiple-choice, true/false, or short answer questions
+              Create different types of questions for your quiz
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[500px] pr-4">
-              <div className="space-y-6">
-                {questions.map((question, index) => (
-                  <div
-                    key={question.id}
-                    className="p-4 border rounded-lg relative mt-2"
-                  >
-                    <div className="absolute -top-3 left-4 bg-white px-2">
-                      <Badge variant="outline" className="bg-purple-50">
-                        Question {index + 1}
-                      </Badge>
-                    </div>
+            <div className="space-y-6">
+              <Tabs
+                defaultValue="mcq"
+                value={activeQuestionTab}
+                onValueChange={setActiveQuestionTab}
+                className="w-full"
+              >
+                <TabsList className="grid grid-cols-3 mb-4">
+                  <TabsTrigger value="mcq">Multiple Choice</TabsTrigger>
+                  <TabsTrigger value="truefalse">True/False</TabsTrigger>
+                  <TabsTrigger value="shortanswer">Short Answer</TabsTrigger>
+                </TabsList>
 
-                    <div className="mb-4 flex justify-between items-center">
-                      <Select
-                        value={question.type}
-                        onValueChange={(value) =>
-                          updateQuestion(question.id, "type", value)
-                        }
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Question Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mcq">Multiple Choice</SelectItem>
-                          <SelectItem value="true_false">True/False</SelectItem>
-                          <SelectItem value="short_answer">
-                            Short Answer
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                <TabsContent value="mcq" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="mcq-question">Question</Label>
+                    <Textarea
+                      id="mcq-question"
+                      placeholder="Enter your multiple choice question"
+                      value={mcqQuestion}
+                      onChange={(e) => setMcqQuestion(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                  </div>
 
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Options</Label>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeQuestion(question.id)}
-                        disabled={questions.length === 1}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddMcqOption}
+                        className="flex items-center gap-1"
                       >
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                        <Plus className="h-3 w-3" /> Add Option
                       </Button>
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor={`question-${question.id}`}>
-                          Question
-                        </Label>
-                        <Textarea
-                          id={`question-${question.id}`}
-                          placeholder="Enter your question here"
-                          value={question.question}
-                          onChange={(e) =>
-                            updateQuestion(
-                              question.id,
-                              "question",
-                              e.target.value
-                            )
-                          }
-                          className="mt-1"
-                        />
-                      </div>
-
-                      {question.type === "mcq" && (
-                        <div className="space-y-3">
-                          <Label>Options</Label>
-                          {question.options.map((option, optIndex) => (
-                            <div
-                              key={optIndex}
-                              className="flex items-center gap-2"
-                            >
-                              <RadioGroup
-                                value={String(question.answer)}
-                                onValueChange={(value) =>
-                                  updateQuestion(
-                                    question.id,
-                                    "answer",
-                                    Number.parseInt(value)
-                                  )
-                                }
-                                className="flex items-center"
-                              >
-                                <RadioGroupItem
-                                  value={String(optIndex)}
-                                  id={`q${question.id}-opt${optIndex}`}
-                                />
-                              </RadioGroup>
-                              <Input
-                                placeholder={`Option ${optIndex + 1}`}
-                                value={option}
-                                onChange={(e) =>
-                                  updateOption(
-                                    question.id,
-                                    optIndex,
-                                    e.target.value
-                                  )
-                                }
-                                className="flex-1"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {question.type === "true_false" && (
-                        <div className="space-y-3">
-                          <Label>Answer</Label>
-                          <RadioGroup
-                            value={String(question.answer)}
-                            onValueChange={(value) =>
-                              updateQuestion(
-                                question.id,
-                                "answer",
-                                Number.parseInt(value)
-                              )
-                            }
-                            className="flex flex-col space-y-2"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem
-                                value="0"
-                                id={`q${question.id}-true`}
-                              />
-                              <Label htmlFor={`q${question.id}-true`}>
-                                True
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem
-                                value="1"
-                                id={`q${question.id}-false`}
-                              />
-                              <Label htmlFor={`q${question.id}-false`}>
-                                False
-                              </Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      )}
-
-                      {question.type === "short_answer" && (
-                        <div className="space-y-2">
-                          <Label htmlFor={`answer-${question.id}`}>
-                            Correct Answer
-                          </Label>
-                          <Input
-                            id={`answer-${question.id}`}
-                            placeholder="Enter the correct answer"
-                            value={question.answer as any}
-                            onChange={(e) =>
-                              updateQuestion(
-                                question.id,
-                                "answer",
-                                e.target.value
+                    <div className="space-y-3">
+                      {mcqOptions.map((option, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <Checkbox
+                            id={`mcq-option-${index}`}
+                            checked={mcqCorrectAnswers.includes(index)}
+                            onCheckedChange={(checked) =>
+                              handleMcqCorrectAnswerChange(
+                                index,
+                                checked as boolean
                               )
                             }
                           />
+                          <Input
+                            value={option}
+                            onChange={(e) =>
+                              handleMcqOptionChange(index, e.target.value)
+                            }
+                            placeholder={`Option ${index + 1}`}
+                            className="flex-1"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveMcqOption(index)}
+                            className="h-8 w-8 text-gray-400 hover:text-red-500"
+                            disabled={mcqOptions.length <= 2}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                      )}
+                      ))}
+                    </div>
+
+                    <div className="text-sm text-gray-500 mt-2">
+                      ✓ Check the boxes next to the correct answer(s)
                     </div>
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={() => addQuestion("mcq")}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" /> Add Multiple Choice
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => addQuestion("true_false")}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" /> Add True/False
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => addQuestion("short_answer")}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" /> Add Short Answer
-              </Button>
+                  <Button
+                    type="button"
+                    onClick={addMcqQuestion}
+                    className="w-full bg-purple-600 hover:bg-purple-700 mt-4"
+                  >
+                    Add Multiple Choice Question
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="truefalse" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tf-question">Question</Label>
+                    <Textarea
+                      id="tf-question"
+                      placeholder="Enter your true/false question"
+                      value={tfQuestion}
+                      onChange={(e) => setTfQuestion(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Correct Answer</Label>
+                    <RadioGroup
+                      value={tfCorrectAnswer?.toString()}
+                      onValueChange={(value) =>
+                        setTfCorrectAnswer(parseInt(value))
+                      }
+                      className="flex space-x-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="0" id="true" />
+                        <Label htmlFor="true">True</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1" id="false" />
+                        <Label htmlFor="false">False</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={addTrueFalseQuestion}
+                    className="w-full bg-purple-600 hover:bg-purple-700 mt-4"
+                  >
+                    Add True/False Question
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="shortanswer" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="short-question">Question</Label>
+                    <Textarea
+                      id="short-question"
+                      placeholder="Enter your short answer question"
+                      value={shortQuestion}
+                      onChange={(e) => setShortQuestion(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="short-answer">Correct Answer</Label>
+                    <Input
+                      id="short-answer"
+                      placeholder="Enter the correct answer"
+                      value={shortAnswer}
+                      onChange={(e) => setShortAnswer(e.target.value)}
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={addShortAnswerQuestion}
+                    className="w-full bg-purple-600 hover:bg-purple-700 mt-4"
+                  >
+                    Add Short Answer Question
+                  </Button>
+                </TabsContent>
+              </Tabs>
+
+              {questions.length > 0 && (
+                <div className="mt-8 border rounded-lg bg-gray-50 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-purple-800">
+                      Added Questions ({questions.length})
+                    </h3>
+                    <Badge
+                      variant="outline"
+                      className="bg-purple-50 text-purple-700"
+                    >
+                      {questions.length}{" "}
+                      {questions.length === 1 ? "Question" : "Questions"} Total
+                    </Badge>
+                  </div>
+
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-4">
+                      {questions.map((question, index) => (
+                        <div
+                          key={index}
+                          className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-sm font-medium">
+                                  {index + 1}
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    question.type === "mcq"
+                                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                                      : question.type === "true_false"
+                                      ? "bg-green-50 text-green-700 border-green-200"
+                                      : "bg-orange-50 text-orange-700 border-orange-200"
+                                  }
+                                >
+                                  {question.type === "mcq"
+                                    ? "Multiple Choice"
+                                    : question.type === "true_false"
+                                    ? "True/False"
+                                    : "Short Answer"}
+                                </Badge>
+                              </div>
+
+                              <p className="text-gray-900 font-medium mb-2">
+                                {question.text}
+                              </p>
+
+                              {question.type === "mcq" && question.options && (
+                                <div className="ml-8 space-y-1.5">
+                                  {question.options.map((option, optIndex) => (
+                                    <div
+                                      key={optIndex}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <div
+                                        className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                                          (
+                                            question.correctAnswer as number[]
+                                          ).includes(optIndex)
+                                            ? "bg-green-100 border-2 border-green-500"
+                                            : "bg-gray-100 border border-gray-300"
+                                        }`}
+                                      >
+                                        {(
+                                          question.correctAnswer as number[]
+                                        ).includes(optIndex) && (
+                                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                                        )}
+                                      </div>
+                                      <span className="text-sm text-gray-600">
+                                        {option}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {question.type === "true_false" && (
+                                <div className="ml-8 flex items-center gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className={`w-4 h-4 rounded-full ${
+                                        question.correctAnswer === 0
+                                          ? "bg-green-100 border-2 border-green-500"
+                                          : "bg-gray-100 border border-gray-300"
+                                      }`}
+                                    />
+                                    <span className="text-sm text-gray-600">
+                                      True
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className={`w-4 h-4 rounded-full ${
+                                        question.correctAnswer === 1
+                                          ? "bg-green-100 border-2 border-green-500"
+                                          : "bg-gray-100 border border-gray-300"
+                                      }`}
+                                    />
+                                    <span className="text-sm text-gray-600">
+                                      False
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {question.type === "shortanswer" && (
+                                <div className="ml-8 mt-2">
+                                  <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 border border-green-200">
+                                    <span className="text-sm text-green-700">
+                                      Answer: {question.correctAnswer}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteQuestion(index)}
+                              className="text-gray-400 hover:text-red-500 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+
+                  {questions.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <span>Scroll to see all questions</span>
+                        <span>{questions.length} questions added</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
@@ -502,6 +890,7 @@ export default function CreateRoom() {
             <Button
               onClick={handleNext}
               className="bg-purple-600 hover:bg-purple-700"
+              disabled={questions.length === 0 || isCreating}
             >
               Continue to Settings
             </Button>
@@ -627,8 +1016,8 @@ export default function CreateRoom() {
                     </p>
                     <Textarea
                       placeholder="e.g., 
-John Doe, 12345
-Jane Smith, 67890"
+                      John Doe, 12345
+                      Jane Smith, 67890"
                       rows={8}
                       value={participantList}
                       onChange={(e) => setParticipantList(e.target.value)}
@@ -673,8 +1062,18 @@ Jane Smith, 67890"
             <Button
               onClick={handleSave}
               className="bg-purple-600 hover:bg-purple-700"
+              disabled={isCreating}
             >
-              <Save className="h-4 w-4 mr-2" /> Create Quiz Room
+              {isCreating ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Creating...</span>
+                </div>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" /> Create Quiz Room
+                </>
+              )}
             </Button>
           </CardFooter>
         </Card>

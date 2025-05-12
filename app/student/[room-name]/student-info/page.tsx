@@ -49,7 +49,6 @@ export default function StudentInfo() {
       const result = await CreatParticipent(name,pathname.split('/')[2]);
       if (result.success) {
         router.push(`/student/quiz/${pathname.split('/')[2]}/${result.data.id}`);
-        setIsLoading(false)
       }
     } catch (error) {
       setError(
@@ -57,8 +56,10 @@ export default function StudentInfo() {
           ? error.message
           : "There was an issue. Please try again."
       );
-      setIsLoading(false)
       console.error(error);
+    }finally{
+      setIsLoading(false)
+
     }
   };
 
