@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ export default function CreateRoom() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [roomName, setRoomName] = useState("");
   const [duration, setDuration] = useState("");
-  const [isNameValid, setIsNameValid] = useState(true);
+  const [isNameValid, setIsNameValid] = useState(false);
   const [nameError, setNameError] = useState("");
   const [restrictParticipants, setRestrictParticipants] = useState(false);
   const [preventCopying, setPreventCopying] = useState(true);
@@ -84,21 +84,23 @@ export default function CreateRoom() {
 
   // Add this loading state at the top with other state declarations
   const [isCreating, setIsCreating] = useState(false);
+  const [isValidatingRoom, setIsValidatingRoom] = useState(false);
 
   const validateRoomName = async (name: string) => {
     // Reset error state
     setNameError("");
-    setIsNameValid(true);
+    setIsNameValid(false);
+    setIsValidatingRoom(true);
 
-    // Basic validation
-    if (name.trim().length < 3) {
-      setNameError("Room name must be at least 3 characters long");
-      setIsNameValid(false);
-      return false;
-    }
-
-    // Check if room exists
     try {
+      // Basic validation
+      if (name.trim().length < 3) {
+        setNameError("Room name must be at least 3 characters long");
+        setIsNameValid(false);
+        return false;
+      }
+
+      // Check if room exists
       const { exists, error } = await isRoomExists(name);
 
       if (error) {
@@ -112,14 +114,17 @@ export default function CreateRoom() {
         setIsNameValid(false);
         return false;
       }
+
+      setIsNameValid(true);
+      return true;
     } catch (error) {
       console.error("Error validating room name:", error);
       setNameError("An error occurred while validating the room name");
       setIsNameValid(false);
       return false;
+    } finally {
+      setIsValidatingRoom(false);
     }
-
-    return true;
   };
 
   const handleNext = async () => {
@@ -527,16 +532,21 @@ export default function CreateRoom() {
               <Label htmlFor="room-name">
                 Room Name <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="room-name"
-                placeholder="Enter a unique room name"
-                value={roomName}
-                onChange={(e) => {
-                  setRoomName(e.target.value);
-                  validateRoomName(e.target.value);
-                }}
-                className={!isNameValid ? "border-red-500" : ""}
-              />
+              <div className="relative">
+                <Input
+                  id="room-name"
+                  placeholder="Enter a unique room name"
+                  value={roomName}
+                  onChange={(e) => setRoomName(e.target.value)}
+                  className={!isNameValid ? "border-red-500" : ""}
+                  disabled={isValidatingRoom}
+                />
+                {isValidatingRoom && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+              </div>
               {!isNameValid && nameError && (
                 <p className="text-red-500 text-sm">{nameError}</p>
               )}
