@@ -17,8 +17,8 @@ interface Question {
   type: string;
   question: string;
   options: string[];
-  answer: string | number;
-  userAnswer?: string | number;
+  answer: string;
+  userAnswer?: string;
 }
 
 export default function QuizApp() {
@@ -34,35 +34,33 @@ export default function QuizApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const pathname = usePathname();
-  const router=useRouter()
+  const router = useRouter();
 
-
-   useEffect(() => {
+  useEffect(() => {
     const checkRoom = async () => {
-      const { exist, message, room } = await checkIfTheRoomExist(pathname.split('/')[3])
-      console.log(message)
-      
+      const { exist, message, room } = await checkIfTheRoomExist(
+        pathname.split("/")[3]
+      );
+      console.log(message);
+
       if (!exist) {
-        router.push(`/student`)
-        return
+        router.push(`/student`);
+        return;
       }
 
-      if (room?.status === 'finish') {
-        router.push(`/student/${pathname.split('/')[3]}/student-info`)
-        return
+      if (room?.status === "finish") {
+        router.push(`/student/${pathname.split("/")[3]}/student-info`);
+        return;
       }
-      if (room?.status === 'pause') {
-        setError("This quiz is paused")
-        return
+      if (room?.status === "pause") {
+        setError("This quiz is paused");
+        return;
       }
+    };
+    checkRoom();
+  }, [pathname, router]);
 
-
-    }
-    checkRoom()
-  }, [pathname, router])
-
-
-  useEffect(() => {  
+  useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const roomId = pathname.split("/")[3];
@@ -72,9 +70,13 @@ export default function QuizApp() {
           return;
         }
 
-        const { success, message, questionsResponse, progressLength,pastQuestions } = await getQuestions(
-          roomId,userId
-        );
+        const {
+          success,
+          message,
+          questionsResponse,
+          progressLength,
+          pastQuestions,
+        } = await getQuestions(roomId, userId);
         if (!success) {
           setError(message || "Failed to fetch questions");
           return;
@@ -84,22 +86,22 @@ export default function QuizApp() {
           return;
         }
         // Type assertion to handle the database response
-        const typedQuestions = questionsResponse.map((q,index) => ({
+        const typedQuestions = questionsResponse.map((q, index) => ({
           ...q,
           options: Array.isArray(q.options) ? q.options : [],
           answer: q.answer,
         })) as Question[];
-        console.log(typedQuestions)
+        console.log(typedQuestions);
 
-        if(typedQuestions.length===0){
-          setQuestions(pastQuestions)
-          setShowResults(true)
-          return
+        if (typedQuestions.length === 0) {
+          setQuestions(pastQuestions);
+          setShowResults(true);
+          return;
         }
 
         setQuestions(shuffle(typedQuestions));
-        setProgress(progressLength)
-        setPastquestions(pastQuestions)
+        setProgress(progressLength);
+        setPastquestions(pastQuestions);
       } catch (err) {
         setError("An unexpected error occurred");
         console.error("Error fetching questions:", err);
@@ -109,28 +111,18 @@ export default function QuizApp() {
     fetchQuestions();
   }, [pathname]);
 
-
-
-
-
-
-  function shuffle(array:Question[]) {
+  function shuffle(array: Question[]) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
-  }  
-
-
+  }
 
   const handleAnswerSelect = (answer: string | number) => {
     if (isAnswered) return;
     setSelectedAnswer(answer);
   };
-
-
-
 
   const handleNextQuestion = async () => {
     if (selectedAnswer === null) {
@@ -147,21 +139,30 @@ export default function QuizApp() {
         setError("Invalid student or question ID");
         return;
       }
+
+      // Get the selected answer text if it's an MCQ or T/F question
+      const currentQ = questions[currentQuestion];
+      const answerValue =
+        currentQ.type === "short_answer"
+          ? selectedAnswer.toString()
+          : typeof selectedAnswer === "number"
+          ? currentQ.options[selectedAnswer] // Convert index to option text
+          : selectedAnswer.toString();
+
       // Update the question with user's answer
       setQuestions((prevQuestions) => {
         const newQuestions = [...prevQuestions];
         newQuestions[currentQuestion] = {
           ...newQuestions[currentQuestion],
-          userAnswer: selectedAnswer.toString(),
+          userAnswer: answerValue,
         };
         return newQuestions;
       });
 
-
       const { success, message } = await submitAnswer(
         studentId,
         questionId,
-        selectedAnswer,
+        answerValue,
         questions[currentQuestion].answer,
         pathname.split("/")[3]
       );
@@ -179,7 +180,7 @@ export default function QuizApp() {
       } else {
         // Quiz is finished, show results
         setShowResults(true);
-        setQuestions((prev)=>[...prev,...pastquestions])
+        setQuestions((prev) => [...prev, ...pastquestions]);
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -189,21 +190,17 @@ export default function QuizApp() {
     }
   };
 
-  if (error=="This quiz is paused") {
-   return     <QuizWaiting/>
-               
+  if (error == "This quiz is paused") {
+    return <QuizWaiting />;
   }
 
-  if(error){
-    return <div>{error}</div>
+  if (error) {
+    return <div>{error}</div>;
   }
-  
+
   if (questions.length === 0) {
-    return <QuizSkeleton/>
-  } 
-
-      
-   
+    return <QuizSkeleton />;
+  }
 
   const currentQ = questions[currentQuestion];
 
@@ -223,7 +220,8 @@ export default function QuizApp() {
               <div className="p-4 sm:p-8">
                 <div className="flex justify-between items-center mb-4 sm:mb-6">
                   <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-secondary rounded-full text-secondary-foreground text-sm sm:text-base font-medium">
-                    Question {currentQuestion+progress + 1}/{questions.length+progress}
+                    Question {currentQuestion + progress + 1}/
+                    {questions.length + progress}
                   </div>
                 </div>
 
@@ -259,7 +257,8 @@ export default function QuizApp() {
                             : "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
                           "border-2 text-sm sm:text-base"
                         )}
-                        disabled={isAnswered} >
+                        disabled={isAnswered}
+                      >
                         <div className="flex items-center justify-between break-words whitespace-pre-wrap">
                           <span>{option}</span>
                         </div>

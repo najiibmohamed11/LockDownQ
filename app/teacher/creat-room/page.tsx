@@ -50,7 +50,7 @@ interface Question {
   type: "mcq" | "true_false" | "short_answer"; // Updated to match backend
   text: string;
   options?: string[];
-  correctAnswer: string | number | number[];
+  correctAnswer: string;
 }
 
 export default function CreateRoom() {
@@ -256,11 +256,16 @@ export default function CreateRoom() {
       return;
     }
 
+    // Convert indices to actual option text values and join with commas if multiple
+    const correctAnswerText = mcqCorrectAnswers
+      .map((index) => mcqOptions[index])
+      .join(", ");
+
     const newQuestion: Question = {
       type: "mcq",
       text: mcqQuestion,
       options: mcqOptions,
-      correctAnswer: mcqCorrectAnswers,
+      correctAnswer: correctAnswerText,
     };
 
     setQuestions([...questions, newQuestion]);
@@ -282,10 +287,13 @@ export default function CreateRoom() {
       return;
     }
 
+    // Store the actual "True" or "False" text instead of 0 or 1
+    const correctAnswerText = tfCorrectAnswer === 0 ? "True" : "False";
+
     const newQuestion: Question = {
       type: "true_false",
       text: tfQuestion,
-      correctAnswer: tfCorrectAnswer,
+      correctAnswer: correctAnswerText,
     };
 
     setQuestions([...questions, newQuestion]);
@@ -328,19 +336,6 @@ export default function CreateRoom() {
     toast.success("Question deleted");
   };
 
-  // First, add this helper function at the top of your component to format the correct answers
-  const formatCorrectAnswer = (question: Question) => {
-    if (question.type === "mcq") {
-      const answers = (question.correctAnswer as number[])
-        .map((index) => question.options?.[index])
-        .join(", ");
-      return `Correct: ${answers}`;
-    } else if (question.type === "true_false") {
-      return `Correct: ${question.correctAnswer}`;
-    } else {
-      return `Answer: ${question.correctAnswer}`;
-    }
-  };
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
@@ -806,18 +801,16 @@ export default function CreateRoom() {
                                     >
                                       <div
                                         className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                                          (
-                                            question.correctAnswer as number[]
-                                          ).includes(optIndex)
+                                          
+                                            question.correctAnswer === option
                                             ? "bg-green-100 border-2 border-green-500"
                                             : "bg-gray-100 border border-gray-300"
                                         }`}
                                       >
-                                        {(
-                                          question.correctAnswer as number[]
-                                        ).includes(optIndex) && (
+                                        {
+                                          question.correctAnswer ===option && 
                                           <div className="w-2 h-2 rounded-full bg-green-500" />
-                                        )}
+                                        }
                                       </div>
                                       <span className="text-sm text-gray-600">
                                         {option}
@@ -832,7 +825,7 @@ export default function CreateRoom() {
                                   <div className="flex items-center gap-2">
                                     <div
                                       className={`w-4 h-4 rounded-full ${
-                                        question.correctAnswer === 0
+                                        question.correctAnswer === "True"
                                           ? "bg-green-100 border-2 border-green-500"
                                           : "bg-gray-100 border border-gray-300"
                                       }`}
@@ -844,7 +837,7 @@ export default function CreateRoom() {
                                   <div className="flex items-center gap-2">
                                     <div
                                       className={`w-4 h-4 rounded-full ${
-                                        question.correctAnswer === 1
+                                        question.correctAnswer === "False"
                                           ? "bg-green-100 border-2 border-green-500"
                                           : "bg-gray-100 border border-gray-300"
                                       }`}
@@ -856,7 +849,7 @@ export default function CreateRoom() {
                                 </div>
                               )}
 
-                              {question.type === "shortanswer" && (
+                              {question.type === "short_answer" && (
                                 <div className="ml-8 mt-2">
                                   <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 border border-green-200">
                                     <span className="text-sm text-green-700">

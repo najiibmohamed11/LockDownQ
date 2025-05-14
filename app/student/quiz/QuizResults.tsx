@@ -16,8 +16,9 @@ interface Question {
   type: string;
   question: string;
   options: string[];
-  answer: string | number;
-  userAnswer?: string | number;
+  answer: string;
+  userAnswer?: string;
+  decision?: boolean | "pending";
 }
 
 interface QuizResultsProps {
@@ -26,7 +27,7 @@ interface QuizResultsProps {
 
 export function QuizResults({ questions }: QuizResultsProps) {
   // Calculate statistics
-  console.log(questions)
+  console.log(questions);
   const totalQuestions = questions.length;
   const autoGradedQuestions = questions.filter(
     (q) => q.type !== "short_answer"
@@ -35,9 +36,23 @@ export function QuizResults({ questions }: QuizResultsProps) {
     (q) => q.type === "short_answer"
   );
 
-  const correctAnswers = autoGradedQuestions.filter(
-    (q) => q.userAnswer !== undefined && q.userAnswer === q.answer
-  ).length;
+  // For short answers, separate pending from graded ones
+  const pendingShortAnswers = shortAnswerQuestions.filter(
+    (q) => q.decision === "pending" || q.decision === undefined
+  );
+
+  const gradedShortAnswers = shortAnswerQuestions.filter(
+    (q) => q.decision === true || q.decision === false
+  );
+
+  // For correct answers, we now do a direct string comparison
+  const correctAnswers = [
+    ...autoGradedQuestions.filter((q) => {
+      if (q.userAnswer === undefined) return false;
+      return q.userAnswer === q.answer;
+    }),
+    ...gradedShortAnswers.filter((q) => q.decision === true),
+  ].length;
 
   const getQuestionTypeLabel = (type: string) => {
     switch (type) {
@@ -51,7 +66,6 @@ export function QuizResults({ questions }: QuizResultsProps) {
         return "Question";
     }
   };
-  
 
   return (
     <motion.div
@@ -181,9 +195,7 @@ export function QuizResults({ questions }: QuizResultsProps) {
                                   : "text-red-600"
                               }`}
                             >
-                              {q.type === "true_false"
-                                ? q.options[parseInt(q.userAnswer as string)]
-                                : q.options[q.userAnswer as number]}
+                              {q.userAnswer}
                             </span>
                           </div>
 
@@ -192,9 +204,7 @@ export function QuizResults({ questions }: QuizResultsProps) {
                               Correct Answer:
                             </span>
                             <span className="text-sm font-medium text-green-600">
-                              {q.type === "true_false"
-                                ? q.options[parseInt(q.answer as string)]
-                                : q.options[q.answer as number]}
+                              {q.answer}
                             </span>
                           </div>
                         </div>
@@ -206,13 +216,33 @@ export function QuizResults({ questions }: QuizResultsProps) {
                             <span className="text-sm font-medium text-gray-500">
                               Your Answer:
                             </span>
-                            <span className="text-sm font-medium text-yellow-600">
+                            <span
+                              className={`text-sm font-medium ${
+                                q.decision === true
+                                  ? "text-green-600"
+                                  : q.decision === false
+                                  ? "text-red-600"
+                                  : "text-yellow-600"
+                              }`}
+                            >
                               {q.userAnswer}
                             </span>
                           </div>
-                          <p className="text-sm text-yellow-600 italic">
-                            This answer will be reviewed by your teacher
-                          </p>
+                          {q.decision === "pending" ||
+                          q.decision === undefined ? (
+                            <p className="text-sm text-yellow-600 italic">
+                              This answer is pending review by your teacher
+                            </p>
+                          ) : q.decision === true ? (
+                            <p className="text-sm text-green-600 italic">
+                              Your answer has been approved by the teacher
+                            </p>
+                          ) : (
+                            <p className="text-sm text-red-600 italic">
+                              Your answer has been marked as incorrect by the
+                              teacher
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
