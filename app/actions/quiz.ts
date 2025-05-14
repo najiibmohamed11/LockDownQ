@@ -11,14 +11,21 @@ interface Question {
   type: string;
   question: string;
   options: string[];
-  answer: string | number;
-  userAnswer?: string | number;
+  answer: string;
+  userAnswer?: string;
+  decision?: boolean | "pending";
 }
 
 type DBQuestion = InferSelectModel<typeof questions>;
-// Assuming it's like: { [questionId: string]: { option: string | number } }
-type ParticipantOptions = Record<string, { option: string | number }>;
+// Define proper types for participant options
+type AnswerOption = {
+  option: string;
+  decision: boolean | "pending";
+};
 
+type ParticipantOptions = {
+  [questionId: string]: AnswerOption;
+};
 
 export type CreateRoomData = {
   roomName: string;
@@ -28,7 +35,7 @@ export type CreateRoomData = {
     type: "mcq" | "true_false" | "short_answer";
     question: string;
     options: string[];
-    answer: string | number | number[];
+    answer: string;
   }[];
   settings: {
     restrictParticipants: boolean;
@@ -68,7 +75,7 @@ export async function createQuizRoom(data: CreateRoomData) {
           q.type === "true_false"
             ? ["True", "False"]
             : q.options.filter((option) => option != ""),
-        answer: q.type === "true_false" ? q.answer.toString() : q.answer,
+        answer: q.answer,
       })
     );
 
@@ -118,7 +125,6 @@ export async function getRooms(ownerId: string) {
       .from(rooms)
       .where(eq(rooms.owner, ownerId))
       .orderBy(rooms.created_at);
-      
 
     return { success: true, rooms: allRooms };
   } catch (error) {
@@ -193,21 +199,21 @@ export const getQuestions = async (roomId: string, participantId: string) => {
     const participantProgress = participantOptionsResult[0]
       ?.options as ParticipantOptions;
 
-
-
     // Get questions
     const questionsResponse = await db
       .select()
       .from(questions)
       .where(eq(questions.roomId, roomId));
 
-    const typedQuestions = questionsResponse.map((q): Question => ({
-      id: q.id,
-      type: q.type,
-      question: q.question,
-      options: Array.isArray(q.options) ? q.options : [],
-      answer: q.answer,
-    }));
+    const typedQuestions = questionsResponse.map(
+      (q): Question => ({
+        id: q.id,
+        type: q.type,
+        question: q.question,
+        options: Array.isArray(q.options) ? q.options : [],
+        answer: q.answer,
+      })
+    );
 
     const pastQuestions: Question[] = [];
     const filteredQuestions: Question[] = [];
@@ -215,17 +221,22 @@ export const getQuestions = async (roomId: string, participantId: string) => {
     for (const question of typedQuestions) {
       const progress = participantProgress[question.id];
       if (progress) {
-        pastQuestions.push({ ...question, userAnswer: progress.option });
+        // Include the decision status for short answers
+        pastQuestions.push({
+          ...question,
+          userAnswer: progress.option,
+          decision: progress.decision,
+        });
       } else {
         filteredQuestions.push(question);
       }
     }
-    console.log(pastQuestions)
+
     return {
       success: true,
       questionsResponse: filteredQuestions,
       progressLength: Object.keys(participantProgress).length,
-      pastQuestions
+      pastQuestions,
     };
   } catch (e) {
     console.error("getQuestions error:", e);
@@ -239,9 +250,9 @@ export const getQuestions = async (roomId: string, participantId: string) => {
 export const submitAnswer = async (
   participantId: string,
   questionId: string,
-  answer: string | number,
-  corectAnswer: number | string,
-  roomid:string
+  answer: string,
+  correctAnswer: string,
+  roomid: string
 ) => {
   // Input validation
   if (!participantId || !questionId) {
@@ -273,38 +284,47 @@ export const submitAnswer = async (
       };
     }
 
-        const isRoomValid = await db
+    const isRoomValid = await db
       .select()
       .from(rooms)
       .where(eq(rooms.id, roomid))
       .then((rows) => rows[0]);
 
-      if(isRoomValid.status=="pause"){
-        return {
+    if (isRoomValid.status == "pause") {
+      return {
         success: false,
         message: "This quiz is paused",
       };
-      }
-      if(isRoomValid.status=="finish"){
-       redirect(`/student`);  
-      }
-      console.log(isRoomValid.status)
+    }
+    if (isRoomValid.status == "finish") {
+      redirect(`/student`);
+    }
 
-    const decision = typeof answer === "number" ? answer == corectAnswer : null;
+    // Get the question to check its type
+    const questionData = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.id, questionId))
+      .then((rows) => rows[0]);
 
-    // Ensure answer is properly typed
-    const typedAnswer = typeof answer === "number" ? answer.toString() : answer;
+    // For short_answer type, set decision to "pending" for teacher review
+    let decision;
+    if (questionData.type === "short_answer") {
+      decision = "pending";
+    } else {
+      // Simple string comparison for other question types
+      decision = answer === correctAnswer;
+    }
 
     // Merge with existing JSON options
     const newOptions = {
       ...(existing.options || {}),
-      [questionId]: { option: typedAnswer, decision: decision },
+      [questionId]: { option: answer, decision: decision },
     };
-
 
     await db
       .update(participants)
-      .set({ options: newOptions, })
+      .set({ options: newOptions })
       .where(eq(participants.id, participantId));
 
     return {
