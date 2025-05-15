@@ -23,12 +23,13 @@ interface data {
   score: string;
 }
 
-export default function ParticipantsTab({ questions, participants }) {
+export default function ParticipantsTab({ questions, participantsProp }) {
   const [expandedParticipant, setExpandedParticipant] = useState(null);
   const [updatingDecision, setUpdatingDecision] = useState<{
     participantId: string;
     questionId: string;
   } | null>(null);
+  const [participants,setParticipants]=useState(participantsProp)
   const { toast } = useToast();
 
   // Function to calculate student's score percentage
@@ -79,23 +80,30 @@ export default function ParticipantsTab({ questions, participants }) {
           variant: "default",
         });
 
-        // Update the local state to reflect the change without refreshing
-        const updatedParticipants = participants.map((p) => {
-          if (p.id === participantId && p.options && p.options[questionId]) {
-            return {
-              ...p,
-              options: {
-                ...p.options,
-                [questionId]: {
-                  ...p.options[questionId],
-                  decision: decision,
-                },
-              },
-            };
-          }
-          return p;
-        });
+      
 
+      setParticipants((prev)=>
+      prev.map((participant)=>{
+        if(participant.id==participantId){
+          return{
+            ...participant,
+            options: {
+            ...participant.options,
+            [questionId]: {
+              ...participant.options[questionId],
+              decision: decision,
+            }
+          }
+
+          }
+        }
+        return participant
+      })
+      )
+
+
+      
+      
         // You might need to add a setState here if participants is a local state
         // or handle the server refresh differently based on your app architecture
       } else {
@@ -115,6 +123,7 @@ export default function ParticipantsTab({ questions, participants }) {
       setUpdatingDecision(null);
     }
   };
+      console.log(participants)
 
   function exportToExcel() {
     const data: data[] = [];
@@ -124,6 +133,9 @@ export default function ParticipantsTab({ questions, participants }) {
         score: `${calculateScore(participant)}%`,
       });
     });
+    if(data.length==0){
+      return;
+    }
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");

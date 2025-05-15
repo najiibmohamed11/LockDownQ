@@ -14,7 +14,7 @@ import QuizWaiting from "./QuizWaiting";
 
 interface Question {
   id: string;
-  type: string;
+  type: "mcq" | "true_false" | "short_answer";
   question: string;
   options: string[];
   answer: string;
@@ -164,7 +164,8 @@ export default function QuizApp() {
         questionId,
         answerValue,
         questions[currentQuestion].answer,
-        pathname.split("/")[3]
+        pathname.split("/")[3],
+        currentQ.type
       );
 
       if (!success) {

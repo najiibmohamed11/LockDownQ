@@ -8,13 +8,14 @@ import { and, eq } from "drizzle-orm";
 
 interface Question {
   id: string;
-  type: string;
+  type: "mcq" | "true_false" | "short_answer";
   question: string;
   options: string[];
   answer: string;
   userAnswer?: string;
   decision?: boolean | "pending";
 }
+
 
 type DBQuestion = InferSelectModel<typeof questions>;
 // Define proper types for participant options
@@ -252,7 +253,8 @@ export const submitAnswer = async (
   questionId: string,
   answer: string,
   correctAnswer: string,
-  roomid: string
+  roomid: string,
+  questionType: "mcq" | "true_false" | "short_answer"
 ) => {
   // Input validation
   if (!participantId || !questionId) {
@@ -300,16 +302,10 @@ export const submitAnswer = async (
       redirect(`/student`);
     }
 
-    // Get the question to check its type
-    const questionData = await db
-      .select()
-      .from(questions)
-      .where(eq(questions.id, questionId))
-      .then((rows) => rows[0]);
 
     // For short_answer type, set decision to "pending" for teacher review
     let decision;
-    if (questionData.type === "short_answer") {
+    if (questionType === "short_answer") {
       decision = "pending";
     } else {
       // Simple string comparison for other question types

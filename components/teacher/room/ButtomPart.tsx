@@ -15,7 +15,7 @@ function ButtomPart({participants,questions}) {
     </TabsList>
 
     <TabsContent value="participants" className="m-0">
-      <ParticipantsTab participants={participants} questions={questions} />
+      <ParticipantsTab participantsProp={participants} questions={questions} />
     </TabsContent>
 
     <TabsContent value="questions" className="m-0">
