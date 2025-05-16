@@ -2,5 +2,5 @@
 import React from 'react';
 
 export default function error() {
-  return <div>error</div>;
+  return <div>some thing went wrong during u room fetching  </div>;
 }

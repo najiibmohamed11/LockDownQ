@@ -2,17 +2,17 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, Search } from 'lucide-react';
-import { OwlLogo } from '@/components/owl-logo';
 import { UserProfile } from '@/components/profile';
+import Image from 'next/image';
 
 export function TeacherHeader() {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
       <div className="flex items-center">
         <Link href="/">
-          <div className="mr-3">
-            <OwlLogo size={40} />
-          </div>
+            <div className="flex justify-center ">
+              <Image src="/logo.svg" alt="logo" width={50} height={50} />
+            </div>          
         </Link>
         <h1 className="text-3xl font-bold text-purple-900">Your Quiz Rooms</h1>
       </div>

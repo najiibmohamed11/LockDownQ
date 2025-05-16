@@ -8,6 +8,7 @@ import {
   timestamp,
   jsonb,
 } from 'drizzle-orm/pg-core';
+import { type InferSelectModel, type InferInsertModel } from 'drizzle-orm';
 
 const timestamps = {
   updated_at: timestamp(),
@@ -29,6 +30,8 @@ export const rooms = pgTable('rooms', {
   numberOfQuestions: integer('numberOfQuestions'),
   ...timestamps,
 });
+
+export type Room = InferSelectModel<typeof rooms>;
 
 export const questions = pgTable('questions', {
   id: uuid('id').defaultRandom().primaryKey(),

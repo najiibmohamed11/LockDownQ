@@ -28,7 +28,6 @@ interface QuizResultsProps {
 export function QuizResults({ questions }: QuizResultsProps) {
   // Calculate statistics
   console.log(questions);
-  const totalQuestions = questions.length;
   const autoGradedQuestions = questions.filter(
     (q) => q.type !== "short_answer"
   );
