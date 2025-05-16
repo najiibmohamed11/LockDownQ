@@ -30,12 +30,9 @@ export async function RoomGrid() {
           .where(eq(rooms.owner, user.id))
           .orderBy(rooms.created_at);        
 
-
-  if (!result) {
+  if (result.length==0) {
     return (
-      <div className="text-red-500">
-        {result.error || "Failed to fetch rooms"}
-      </div>
+      <EmtyRoom/>
     );
   }
 
@@ -138,25 +135,25 @@ export async function RoomGrid() {
         ))}
       </div>
 
-      {result.length === 0 && (
+ 
+    </>
+  );
+}
+
+
+
+function EmtyRoom(){
+  return(
         <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 text-center">
-          <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-            <OwlLogo size={32} />
-          </div>
           <h3 className="text-xl font-semibold text-purple-900 mb-2">
             No quiz rooms found
           </h3>
-          <p className="text-purple-700 mb-6">
-     "Try a different search term"
-       
-          </p>
+     
           <Button
             className="bg-purple-600 hover:bg-purple-700"
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Create New Room
           </Button>
         </div>
-      )}
-    </>
-  );
+  )
 }
