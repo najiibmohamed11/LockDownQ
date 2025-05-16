@@ -1,48 +1,48 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PlusCircle, Trash2, ImageIcon } from "lucide-react"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PlusCircle, Trash2, ImageIcon } from 'lucide-react';
 
 interface QuestionCreatorProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export function QuestionCreator({ onClose }: QuestionCreatorProps) {
-  const [questionType, setQuestionType] = useState("multiple-choice")
-  const [questionText, setQuestionText] = useState("")
-  const [options, setOptions] = useState(["", "", "", ""])
-  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null)
-  const [shortAnswer, setShortAnswer] = useState("")
-  const [hasImage, setHasImage] = useState(false)
+  const [questionType, setQuestionType] = useState('multiple-choice');
+  const [questionText, setQuestionText] = useState('');
+  const [options, setOptions] = useState(['', '', '', '']);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [shortAnswer, setShortAnswer] = useState('');
+  const [hasImage, setHasImage] = useState(false);
 
   const handleOptionChange = (index: number, value: string) => {
-    const newOptions = [...options]
-    newOptions[index] = value
-    setOptions(newOptions)
-  }
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
+  };
 
   const addOption = () => {
-    setOptions([...options, ""])
-  }
+    setOptions([...options, '']);
+  };
 
   const removeOption = (index: number) => {
-    const newOptions = [...options]
-    newOptions.splice(index, 1)
-    setOptions(newOptions)
+    const newOptions = [...options];
+    newOptions.splice(index, 1);
+    setOptions(newOptions);
     if (correctAnswer === options[index]) {
-      setCorrectAnswer(null)
+      setCorrectAnswer(null);
     }
-  }
+  };
 
   const handleSave = () => {
     // In a real app, this would save the question to the database
-    onClose()
-  }
+    onClose();
+  };
 
   return (
     <div className="space-y-6">
@@ -85,8 +85,13 @@ export function QuestionCreator({ onClose }: QuestionCreatorProps) {
             <div className="border-2 border-dashed border-purple-200 rounded-lg p-6 text-center">
               <div className="flex flex-col items-center">
                 <ImageIcon className="h-10 w-10 text-purple-500 mb-2" />
-                <p className="text-sm text-purple-700 mb-2">Drag and drop an image, or click to browse</p>
-                <Button variant="outline" className="border-purple-600 text-purple-700 hover:bg-purple-100">
+                <p className="text-sm text-purple-700 mb-2">
+                  Drag and drop an image, or click to browse
+                </p>
+                <Button
+                  variant="outline"
+                  className="border-purple-600 text-purple-700 hover:bg-purple-100"
+                >
                   Upload Image
                 </Button>
               </div>
@@ -96,16 +101,26 @@ export function QuestionCreator({ onClose }: QuestionCreatorProps) {
           <TabsContent value="multiple-choice" className="space-y-4 mt-4">
             <div>
               <Label className="text-purple-800">Answer Options</Label>
-              <RadioGroup value={correctAnswer || ""} onValueChange={setCorrectAnswer} className="mt-2">
+              <RadioGroup
+                value={correctAnswer || ''}
+                onValueChange={setCorrectAnswer}
+                className="mt-2"
+              >
                 {options.map((option, index) => (
                   <div key={index} className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value={option} id={`option-${index}`} className="text-purple-700" />
+                    <RadioGroupItem
+                      value={option}
+                      id={`option-${index}`}
+                      className="text-purple-700"
+                    />
                     <div className="flex-1">
                       <Input
                         placeholder={`Option ${index + 1}`}
                         className="bg-white border-purple-200"
                         value={option}
-                        onChange={(e) => handleOptionChange(index, e.target.value)}
+                        onChange={(e) =>
+                          handleOptionChange(index, e.target.value)
+                        }
                       />
                     </div>
                     {options.length > 2 && (
@@ -136,15 +151,27 @@ export function QuestionCreator({ onClose }: QuestionCreatorProps) {
           <TabsContent value="true-false" className="space-y-4 mt-4">
             <div>
               <Label className="text-purple-800">Correct Answer</Label>
-              <RadioGroup defaultValue="true" className="mt-2" onValueChange={setCorrectAnswer}>
+              <RadioGroup
+                defaultValue="true"
+                className="mt-2"
+                onValueChange={setCorrectAnswer}
+              >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="True" id="true" className="text-purple-700" />
+                  <RadioGroupItem
+                    value="True"
+                    id="true"
+                    className="text-purple-700"
+                  />
                   <Label htmlFor="true" className="text-purple-800">
                     True
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="False" id="false" className="text-purple-700" />
+                  <RadioGroupItem
+                    value="False"
+                    id="false"
+                    className="text-purple-700"
+                  />
                   <Label htmlFor="false" className="text-purple-800">
                     False
                   </Label>
@@ -166,7 +193,8 @@ export function QuestionCreator({ onClose }: QuestionCreatorProps) {
                 onChange={(e) => setShortAnswer(e.target.value)}
               />
               <p className="text-xs text-purple-700 mt-1">
-                Students will need to type an answer that matches this exactly. Consider accepting multiple variations.
+                Students will need to type an answer that matches this exactly.
+                Consider accepting multiple variations.
               </p>
             </div>
           </TabsContent>
@@ -174,13 +202,20 @@ export function QuestionCreator({ onClose }: QuestionCreatorProps) {
       </Tabs>
 
       <div className="pt-4 border-t border-purple-100 flex justify-end gap-3">
-        <Button variant="outline" className="border-purple-600 text-purple-700 hover:bg-purple-100" onClick={onClose}>
+        <Button
+          variant="outline"
+          className="border-purple-600 text-purple-700 hover:bg-purple-100"
+          onClick={onClose}
+        >
           Cancel
         </Button>
-        <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleSave}>
+        <Button
+          className="bg-purple-600 hover:bg-purple-700"
+          onClick={handleSave}
+        >
           Add Question
         </Button>
       </div>
     </div>
-  )
+  );
 }

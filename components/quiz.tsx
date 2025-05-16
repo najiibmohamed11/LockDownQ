@@ -1,106 +1,117 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { CheckCircle2, XCircle, Clock, Award, ChevronRight, TreePine, Mountain, Snowflake } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Award,
+  ChevronRight,
+  TreePine,
+  Mountain,
+  Snowflake,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 // Quiz data
 const quizData = [
   {
-    question: "Which of these is NOT a winter sport?",
-    options: ["Ice Skating", "Snowboarding", "Cricket", "Skiing"],
-    correctAnswer: "Cricket",
+    question: 'Which of these is NOT a winter sport?',
+    options: ['Ice Skating', 'Snowboarding', 'Cricket', 'Skiing'],
+    correctAnswer: 'Cricket',
   },
   {
-    question: "What causes snow to appear white?",
+    question: 'What causes snow to appear white?',
     options: [
       "It's naturally white",
-      "Light reflection off ice crystals",
-      "It contains white pigment",
-      "It absorbs all colors",
+      'Light reflection off ice crystals',
+      'It contains white pigment',
+      'It absorbs all colors',
     ],
-    correctAnswer: "Light reflection off ice crystals",
+    correctAnswer: 'Light reflection off ice crystals',
   },
   {
-    question: "Which animal changes its coat color to white in winter?",
-    options: ["Polar Bear", "Arctic Fox", "Penguin", "Seal"],
-    correctAnswer: "Arctic Fox",
+    question: 'Which animal changes its coat color to white in winter?',
+    options: ['Polar Bear', 'Arctic Fox', 'Penguin', 'Seal'],
+    correctAnswer: 'Arctic Fox',
   },
   {
-    question: "What is the coldest temperature ever recorded on Earth?",
-    options: ["-89.2°C", "-100.4°C", "-78.5°C", "-94.7°C"],
-    correctAnswer: "-89.2°C",
+    question: 'What is the coldest temperature ever recorded on Earth?',
+    options: ['-89.2°C', '-100.4°C', '-78.5°C', '-94.7°C'],
+    correctAnswer: '-89.2°C',
   },
   {
     question: "Which country experiences a 'White Christmas' most often?",
-    options: ["Canada", "Russia", "Norway", "Finland"],
-    correctAnswer: "Finland",
+    options: ['Canada', 'Russia', 'Norway', 'Finland'],
+    correctAnswer: 'Finland',
   },
-]
+];
 
 export default function QuizApp() {
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState("")
-  const [score, setScore] = useState(0)
-  const [showResult, setShowResult] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(30)
-  const [answerStatus, setAnswerStatus] = useState<"correct" | "incorrect" | null>(null)
-  const [isAnswered, setIsAnswered] = useState(false)
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState('');
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [answerStatus, setAnswerStatus] = useState<
+    'correct' | 'incorrect' | null
+  >(null);
+  const [isAnswered, setIsAnswered] = useState(false);
 
   // Timer effect
   useEffect(() => {
     if (timeLeft > 0 && !showResult && !isAnswered) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !isAnswered) {
-      handleNextQuestion()
+      handleNextQuestion();
     }
-  }, [timeLeft, showResult, isAnswered])
+  }, [timeLeft, showResult, isAnswered]);
 
   const handleAnswerSelect = (answer: string) => {
-    if (isAnswered) return
+    if (isAnswered) return;
 
-    setSelectedAnswer(answer)
-    setIsAnswered(true)
+    setSelectedAnswer(answer);
+    setIsAnswered(true);
 
-    const isCorrect = answer === quizData[currentQuestion].correctAnswer
-    setAnswerStatus(isCorrect ? "correct" : "incorrect")
+    const isCorrect = answer === quizData[currentQuestion].correctAnswer;
+    setAnswerStatus(isCorrect ? 'correct' : 'incorrect');
 
     if (isCorrect) {
-      setScore(score + 1)
+      setScore(score + 1);
     }
-  }
+  };
 
   const handleNextQuestion = () => {
-    setIsAnswered(false)
-    setSelectedAnswer("")
-    setAnswerStatus(null)
-    setTimeLeft(30)
+    setIsAnswered(false);
+    setSelectedAnswer('');
+    setAnswerStatus(null);
+    setTimeLeft(30);
 
     if (currentQuestion < quizData.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
+      setCurrentQuestion(currentQuestion + 1);
     } else {
-      setShowResult(true)
+      setShowResult(true);
     }
-  }
+  };
 
   const resetQuiz = () => {
-    setCurrentQuestion(0)
-    setSelectedAnswer("")
-    setScore(0)
-    setShowResult(false)
-    setTimeLeft(30)
-    setAnswerStatus(null)
-    setIsAnswered(false)
-  }
+    setCurrentQuestion(0);
+    setSelectedAnswer('');
+    setScore(0);
+    setShowResult(false);
+    setTimeLeft(30);
+    setAnswerStatus(null);
+    setIsAnswered(false);
+  };
 
-  const progressPercentage = ((currentQuestion + (isAnswered ? 1 : 0)) / quizData.length) * 100
+  const progressPercentage =
+    ((currentQuestion + (isAnswered ? 1 : 0)) / quizData.length) * 100;
 
   return (
     <div className="w-full max-w-2xl">
-
       <AnimatePresence mode="wait">
         {!showResult ? (
           <motion.div
@@ -122,7 +133,9 @@ export default function QuizApp() {
                 </div>
               </div>
 
-              <h2 className="text-2xl font-bold text-cyan-900 mb-8">{quizData[currentQuestion].question}</h2>
+              <h2 className="text-2xl font-bold text-cyan-900 mb-8">
+                {quizData[currentQuestion].question}
+              </h2>
 
               <div className="grid gap-4">
                 {quizData[currentQuestion].options.map((option, index) => (
@@ -132,16 +145,17 @@ export default function QuizApp() {
                     whileTap={{ scale: 0.99 }}
                     onClick={() => handleAnswerSelect(option)}
                     className={cn(
-                      "relative p-6 rounded-xl text-left font-medium transition-all duration-200 group",
+                      'relative p-6 rounded-xl text-left font-medium transition-all duration-200 group',
                       selectedAnswer === option
                         ? option === quizData[currentQuestion].correctAnswer
-                          ? "bg-green-100 border-green-300 text-green-800"
-                          : "bg-red-100 border-red-300 text-red-800"
-                        : "bg-white hover:bg-cyan-50 text-cyan-900 border-cyan-100",
-                      "border-2",
-                      isAnswered && option === quizData[currentQuestion].correctAnswer
-                        ? "bg-green-100 border-green-300"
-                        : "",
+                          ? 'bg-green-100 border-green-300 text-green-800'
+                          : 'bg-red-100 border-red-300 text-red-800'
+                        : 'bg-white hover:bg-cyan-50 text-cyan-900 border-cyan-100',
+                      'border-2',
+                      isAnswered &&
+                        option === quizData[currentQuestion].correctAnswer
+                        ? 'bg-green-100 border-green-300'
+                        : ''
                     )}
                     disabled={isAnswered}
                   >
@@ -149,7 +163,8 @@ export default function QuizApp() {
                       <span>{option}</span>
                       {isAnswered && (
                         <>
-                          {option === quizData[currentQuestion].correctAnswer ? (
+                          {option ===
+                          quizData[currentQuestion].correctAnswer ? (
                             <CheckCircle2 className="w-6 h-6 text-green-600" />
                           ) : selectedAnswer === option ? (
                             <XCircle className="w-6 h-6 text-red-600" />
@@ -159,8 +174,8 @@ export default function QuizApp() {
                     </div>
                     <div
                       className={cn(
-                        "absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                        "border-2 border-cyan-200",
+                        'absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300',
+                        'border-2 border-cyan-200'
                       )}
                     ></div>
                   </motion.button>
@@ -171,15 +186,19 @@ export default function QuizApp() {
             <div className="p-6 bg-cyan-50 flex justify-between items-center">
               {isAnswered && (
                 <div className="flex items-center gap-2">
-                  {answerStatus === "correct" ? (
+                  {answerStatus === 'correct' ? (
                     <>
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span className="text-green-600 font-medium">Correct!</span>
+                      <span className="text-green-600 font-medium">
+                        Correct!
+                      </span>
                     </>
                   ) : (
                     <>
                       <XCircle className="w-5 h-5 text-red-600" />
-                      <span className="text-red-600 font-medium">Incorrect!</span>
+                      <span className="text-red-600 font-medium">
+                        Incorrect!
+                      </span>
                     </>
                   )}
                 </div>
@@ -189,7 +208,9 @@ export default function QuizApp() {
                 className="ml-auto bg-cyan-600 hover:bg-cyan-700 text-white border-none"
                 size="lg"
               >
-                {currentQuestion < quizData.length - 1 ? "Next Question" : "Finish Quiz"}
+                {currentQuestion < quizData.length - 1
+                  ? 'Next Question'
+                  : 'Finish Quiz'}
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
@@ -213,7 +234,9 @@ export default function QuizApp() {
                   <Snowflake className="w-12 h-12 text-cyan-700" />
                 )}
               </div>
-              <h2 className="text-3xl font-bold text-cyan-900 mb-2">Quiz Completed!</h2>
+              <h2 className="text-3xl font-bold text-cyan-900 mb-2">
+                Quiz Completed!
+              </h2>
               <p className="text-cyan-700 mb-8">
                 You scored {score} out of {quizData.length}
               </p>
@@ -234,14 +257,18 @@ export default function QuizApp() {
               <div className="mb-8">
                 <div className="inline-block px-4 py-2 rounded-full bg-cyan-100 text-cyan-700">
                   {score === quizData.length
-                    ? "Winter Expert! ❄️"
+                    ? 'Winter Expert! ❄️'
                     : score >= quizData.length / 2
-                      ? "Well done! ☃️"
-                      : "Keep learning about winter! 🌨️"}
+                      ? 'Well done! ☃️'
+                      : 'Keep learning about winter! 🌨️'}
                 </div>
               </div>
 
-              <Button onClick={resetQuiz} className="bg-cyan-600 hover:bg-cyan-700 text-white" size="lg">
+              <Button
+                onClick={resetQuiz}
+                className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                size="lg"
+              >
                 Try Again
               </Button>
             </div>
@@ -273,5 +300,5 @@ export default function QuizApp() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,13 +1,13 @@
-"use server";
-import { participants } from "@/app/db/schema";
-import { db } from "../db/drizzle";
-import { redirect } from "next/navigation";
-import { eq, and } from "drizzle-orm";
+'use server';
+import { participants } from '@/app/db/schema';
+import { db } from '../db/drizzle';
+import { redirect } from 'next/navigation';
+import { eq, and } from 'drizzle-orm';
 
 // Define proper types for participant options
 type AnswerOption = {
   option: string;
-  decision: boolean | "pending";
+  decision: boolean | 'pending';
 };
 
 type ParticipantOptions = {
@@ -16,8 +16,8 @@ type ParticipantOptions = {
 
 export const CreatParticipent = async (name: string, roomId: string) => {
   try {
-    if (!name || name.trim() === "") {
-      throw new Error("Name is required");
+    if (!name || name.trim() === '') {
+      throw new Error('Name is required');
     }
 
     const participant = await db
@@ -33,8 +33,8 @@ export const CreatParticipent = async (name: string, roomId: string) => {
       data: participant[0],
     };
   } catch (error) {
-    console.error("Error creating participant:", error);
-    throw new Error("Failed to create participant. Please try again.");
+    console.error('Error creating participant:', error);
+    throw new Error('Failed to create participant. Please try again.');
   }
 };
 
@@ -60,7 +60,7 @@ export const updateShortAnswerDecision = async (
     if (!participant) {
       return {
         success: false,
-        message: "Participant not found",
+        message: 'Participant not found',
       };
     }
 
@@ -69,7 +69,7 @@ export const updateShortAnswerDecision = async (
     if (!options[questionId]) {
       return {
         success: false,
-        message: "Answer not found for this question",
+        message: 'Answer not found for this question',
       };
     }
 
@@ -90,13 +90,13 @@ export const updateShortAnswerDecision = async (
 
     return {
       success: true,
-      message: "Decision updated successfully",
+      message: 'Decision updated successfully',
     };
   } catch (error) {
-    console.error("Error updating decision:", error);
+    console.error('Error updating decision:', error);
     return {
       success: false,
-      message: "Failed to update decision",
+      message: 'Failed to update decision',
     };
   }
 };

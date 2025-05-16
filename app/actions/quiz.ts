@@ -1,27 +1,26 @@
-"use server";
+'use server';
 
-import { db } from "@/app/db/drizzle";
-import { rooms, questions, participants } from "@/app/db/schema";
-import { redirect } from "next/navigation";
-import { InferSelectModel } from "drizzle-orm";
-import { and, eq } from "drizzle-orm";
+import { db } from '@/app/db/drizzle';
+import { rooms, questions, participants } from '@/app/db/schema';
+import { redirect } from 'next/navigation';
+import { InferSelectModel } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 interface Question {
   id: string;
-  type: "mcq" | "true_false" | "short_answer";
+  type: 'mcq' | 'true_false' | 'short_answer';
   question: string;
   options: string[];
   answer: string;
   userAnswer?: string;
-  decision?: boolean | "pending";
+  decision?: boolean | 'pending';
 }
-
 
 type DBQuestion = InferSelectModel<typeof questions>;
 // Define proper types for participant options
 type AnswerOption = {
   option: string;
-  decision: boolean | "pending";
+  decision: boolean | 'pending';
 };
 
 type ParticipantOptions = {
@@ -33,7 +32,7 @@ export type CreateRoomData = {
   duration: string;
   owner: string;
   questions: {
-    type: "mcq" | "true_false" | "short_answer";
+    type: 'mcq' | 'true_false' | 'short_answer';
     question: string;
     options: string[];
     answer: string;
@@ -60,7 +59,7 @@ export async function createQuizRoom(data: CreateRoomData) {
         randomizeQuestions: data.settings.randomizeQuestions,
         showOneQuestionAtTime: data.settings.showOneQuestionAtTime,
         participantList: data.participantList,
-        status: "active",
+        status: 'active',
         owner: data.owner.toString(),
         numberOfQuestions: data.questions.length,
       })
@@ -73,9 +72,9 @@ export async function createQuizRoom(data: CreateRoomData) {
         type: q.type,
         question: q.question,
         options:
-          q.type === "true_false"
-            ? ["True", "False"]
-            : q.options.filter((option) => option != ""),
+          q.type === 'true_false'
+            ? ['True', 'False']
+            : q.options.filter((option) => option != ''),
         answer: q.answer,
       })
     );
@@ -86,13 +85,13 @@ export async function createQuizRoom(data: CreateRoomData) {
     return {
       success: true,
       roomId: room.id,
-      redirectPath: "/teacher",
+      redirectPath: '/teacher',
     };
   } catch (error) {
-    console.error("Error creating quiz room:", error);
+    console.error('Error creating quiz room:', error);
     return {
       success: false,
-      error: "Failed to create quiz room",
+      error: 'Failed to create quiz room',
     };
   }
 }
@@ -129,8 +128,8 @@ export async function getRooms(ownerId: string) {
 
     return { success: true, rooms: allRooms };
   } catch (error) {
-    console.error("Error fetching rooms:", error);
-    return { success: false, error: "Failed to fetch rooms" };
+    console.error('Error fetching rooms:', error);
+    return { success: false, error: 'Failed to fetch rooms' };
   }
 }
 
@@ -139,7 +138,7 @@ export async function getRoomById(roomId: string) {
     const [room] = await db.select().from(rooms).where(eq(rooms.id, roomId));
 
     if (!room) {
-      return { success: false, error: "Room not found" };
+      return { success: false, error: 'Room not found' };
     }
 
     const roomQuestions = await db
@@ -155,8 +154,8 @@ export async function getRoomById(roomId: string) {
       },
     };
   } catch (error) {
-    console.error("Error fetching room:", error);
-    return { success: false, error: "Failed to fetch room" };
+    console.error('Error fetching room:', error);
+    return { success: false, error: 'Failed to fetch room' };
   }
 }
 
@@ -174,10 +173,10 @@ export async function isRoomExists(roomName: string) {
       roomStatus: existingRooms.length > 0 ? existingRooms[0].status : null,
     };
   } catch (error) {
-    console.error("Error checking room existence:", error);
+    console.error('Error checking room existence:', error);
     return {
       exists: false,
-      error: "Failed to check room existence",
+      error: 'Failed to check room existence',
     };
   }
 }
@@ -186,7 +185,7 @@ export const getQuestions = async (roomId: string, participantId: string) => {
   if (!roomId) {
     return {
       success: false,
-      message: "please provide room id",
+      message: 'please provide room id',
     };
   }
 
@@ -240,10 +239,10 @@ export const getQuestions = async (roomId: string, participantId: string) => {
       pastQuestions,
     };
   } catch (e) {
-    console.error("getQuestions error:", e);
+    console.error('getQuestions error:', e);
     return {
       success: false,
-      message: "there is issue",
+      message: 'there is issue',
     };
   }
 };
@@ -254,13 +253,13 @@ export const submitAnswer = async (
   answer: string,
   correctAnswer: string,
   roomid: string,
-  questionType: "mcq" | "true_false" | "short_answer"
+  questionType: 'mcq' | 'true_false' | 'short_answer'
 ) => {
   // Input validation
   if (!participantId || !questionId) {
     return {
       success: false,
-      message: "Missing required parameters",
+      message: 'Missing required parameters',
     };
   }
 
@@ -268,7 +267,7 @@ export const submitAnswer = async (
   if (answer === undefined || answer === null) {
     return {
       success: false,
-      message: "Please provide an answer",
+      message: 'Please provide an answer',
     };
   }
 
@@ -282,7 +281,7 @@ export const submitAnswer = async (
     if (!existing) {
       return {
         success: false,
-        message: "Participant not found",
+        message: 'Participant not found',
       };
     }
 
@@ -292,21 +291,20 @@ export const submitAnswer = async (
       .where(eq(rooms.id, roomid))
       .then((rows) => rows[0]);
 
-    if (isRoomValid.status == "pause") {
+    if (isRoomValid.status == 'pause') {
       return {
         success: false,
-        message: "This quiz is paused",
+        message: 'This quiz is paused',
       };
     }
-    if (isRoomValid.status == "finish") {
+    if (isRoomValid.status == 'finish') {
       redirect(`/student`);
     }
 
-
     // For short_answer type, set decision to "pending" for teacher review
     let decision;
-    if (questionType === "short_answer") {
-      decision = "pending";
+    if (questionType === 'short_answer') {
+      decision = 'pending';
     } else {
       // Simple string comparison for other question types
       decision = answer === correctAnswer;
@@ -325,91 +323,81 @@ export const submitAnswer = async (
 
     return {
       success: true,
-      message: "Answer saved successfully",
+      message: 'Answer saved successfully',
     };
   } catch (e) {
-    console.error("Error submitting answer:", e);
+    console.error('Error submitting answer:', e);
     return {
       success: false,
-      message: "Failed to save answer. Please try again.",
+      message: 'Failed to save answer. Please try again.',
     };
   }
 };
 
-
-export  const checkIfTheRoomExist=async(roomId:string)=>{
-    try{
-      const room=await db.select().from(rooms).where(eq(rooms.id,roomId))
-      console.log(room)
-      return{
-        exist:room.length>0,
-        message:"not exist",
-        room:room[0]
-      }
-    }catch(e){
-    console.log(e)
-     return {
-      exists:false,
-      message:"there is issue"
-
-      }
-    }
+export const checkIfTheRoomExist = async (roomId: string) => {
+  try {
+    const room = await db.select().from(rooms).where(eq(rooms.id, roomId));
+    console.log(room);
+    return {
+      exist: room.length > 0,
+      message: 'not exist',
+      room: room[0],
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      exists: false,
+      message: 'there is issue',
+    };
   }
+};
 
+export async function getRoomDetails(roomId: string, ownerId: string) {
+  try {
+    // Get room details
+    const room = await db
+      .select()
+      .from(rooms)
+      .where(and(eq(rooms.id, roomId), eq(rooms.owner, ownerId)))
+      .then((res) => res[0]);
 
-
-
-
-  export async function getRoomDetails(roomId: string,ownerId:string) {
-    try {
-      // Get room details
-      const room = await db
-        .select()
-        .from(rooms)
-        .where(and(eq(rooms.id, roomId),eq(rooms.owner,ownerId)))
-        .then((res) => res[0]);
-  
-      if (!room) {
-        throw new Error("Room not found");
-      }
-  
-      // Get questions for the room
-      const roomQuestions = await db
-        .select()
-        .from(questions)
-        .where(eq(questions.roomId, roomId));
-  
-      // Get participants for the room
-      const roomParticipants = await db
-        .select()
-        .from(participants)
-        .where(eq(participants.roomId, roomId));    
-  
-      return {
-        room,
-        questions: roomQuestions,
-        participants: roomParticipants,
-      };
-    } catch (error) {
-      console.error("Error fetching room details:", error);
-      throw error;
+    if (!room) {
+      throw new Error('Room not found');
     }
+
+    // Get questions for the room
+    const roomQuestions = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.roomId, roomId));
+
+    // Get participants for the room
+    const roomParticipants = await db
+      .select()
+      .from(participants)
+      .where(eq(participants.roomId, roomId));
+
+    return {
+      room,
+      questions: roomQuestions,
+      participants: roomParticipants,
+    };
+  } catch (error) {
+    console.error('Error fetching room details:', error);
+    throw error;
   }
+}
 
-
-  export const changeRoomStatus=async(newStatus:string,roomId:string)=>{
-    if(!newStatus||!roomId){
-      return {success:false,message:"mssing required feld"};
-    }
-    const resualt=await db
+export const changeRoomStatus = async (newStatus: string, roomId: string) => {
+  if (!newStatus || !roomId) {
+    return { success: false, message: 'mssing required feld' };
+  }
+  const resualt = await db
     .update(rooms)
-    .set({status:newStatus})
-    .where(eq(rooms.id,roomId))
-    return{
-      success:true,
-      message:"success full"
-    }
-  }
-
-
-  
+    .set({ status: newStatus })
+    .where(eq(rooms.id, roomId));
+  return {
+    success: true,
+    message: 'success full',
+  };
+};

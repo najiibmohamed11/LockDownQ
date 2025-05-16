@@ -1,12 +1,11 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PlusCircle, Search } from "lucide-react";
-import { OwlLogo } from "@/components/owl-logo";
-import { UserProfile } from "@/components/profile";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { PlusCircle, Search } from 'lucide-react';
+import { OwlLogo } from '@/components/owl-logo';
+import { UserProfile } from '@/components/profile';
 
 export function TeacherHeader() {
-
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
       <div className="flex items-center">
@@ -24,15 +23,12 @@ export function TeacherHeader() {
           <Input
             placeholder="Search rooms..."
             className="pl-10 bg-white/80 border-purple-200 w-full"
-           
           />
         </div>
         <Link href="/teacher/creat-room">
-        <Button
-          className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap"
-        >
-          <PlusCircle className="mr-2 h-4 w-4" /> New Room
-        </Button>
+          <Button className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap">
+            <PlusCircle className="mr-2 h-4 w-4" /> New Room
+          </Button>
         </Link>
         <UserProfile />
       </div>

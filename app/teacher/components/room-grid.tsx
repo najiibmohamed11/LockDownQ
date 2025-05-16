@@ -1,13 +1,21 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { PlusCircle, Users, Clock, Play, Pause, CircleHelp, } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { OwlLogo } from "@/components/owl-logo";
-import {  currentUser } from "@clerk/nextjs/server";
-import { getRooms } from "@/app/actions/quiz";
-import { db } from "@/app/db/drizzle";
-import { rooms, questions } from "@/app/db/schema";import { eq } from "drizzle-orm";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  PlusCircle,
+  Users,
+  Clock,
+  Play,
+  Pause,
+  CircleHelp,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { OwlLogo } from '@/components/owl-logo';
+import { currentUser } from '@clerk/nextjs/server';
+import { getRooms } from '@/app/actions/quiz';
+import { db } from '@/app/db/drizzle';
+import { rooms, questions } from '@/app/db/schema';
+import { eq } from 'drizzle-orm';
 
 interface RoomGridProps {
   initialSearchQuery?: string;
@@ -15,7 +23,6 @@ interface RoomGridProps {
 }
 
 export async function RoomGrid() {
-  
   const user = await currentUser();
 
   if (!user) {
@@ -24,24 +31,21 @@ export async function RoomGrid() {
     );
   }
 
-  const result =  await db
-          .select()
-          .from(rooms)
-          .where(eq(rooms.owner, user.id))
-          .orderBy(rooms.created_at);        
+  const result = await db
+    .select()
+    .from(rooms)
+    .where(eq(rooms.owner, user.id))
+    .orderBy(rooms.created_at);
 
-  if (result.length==0) {
-    return (
-      <EmtyRoom/>
-    );
+  if (result.length == 0) {
+    return <EmtyRoom />;
   }
 
-
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
@@ -59,20 +63,20 @@ export async function RoomGrid() {
                     </h3>
                     <div
                       className={cn(
-                        "px-2 py-1 rounded-full text-xs font-medium",
-                        room.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : room.status === "paused"
-                          ? "bg-amber-100 text-amber-800"
-                          : room.status === "completed"
-                          ? "bg-gray-100 text-gray-800"
-                          : "bg-indigo-100 text-indigo-800"
+                        'px-2 py-1 rounded-full text-xs font-medium',
+                        room.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : room.status === 'paused'
+                            ? 'bg-amber-100 text-amber-800'
+                            : room.status === 'completed'
+                              ? 'bg-gray-100 text-gray-800'
+                              : 'bg-indigo-100 text-indigo-800'
                       )}
                     >
                       {room.status
                         ? room.status.charAt(0).toUpperCase() +
                           room.status.slice(1)
-                        : "Draft"}
+                        : 'Draft'}
                     </div>
                   </div>
 
@@ -85,14 +89,18 @@ export async function RoomGrid() {
                     </div>
 
                     <div className="flex items-center text-purple-800 ">
-                    <CircleHelp className="h-4 w-4 mr-2"/>
-                        <span >{room.numberOfQuestions || 0} questions</span>
+                      <CircleHelp className="h-4 w-4 mr-2" />
+                      <span>{room.numberOfQuestions || 0} questions</span>
                     </div>
 
                     {
                       <div className="flex items-center text-purple-800">
                         <Clock className="h-4 w-4 mr-2" />
-                        <span >{room.duration?`${room.duration} minutes`:"  unlimited"} </span>
+                        <span>
+                          {room.duration
+                            ? `${room.duration} minutes`
+                            : '  unlimited'}{' '}
+                        </span>
                       </div>
                     }
                   </div>
@@ -104,11 +112,11 @@ export async function RoomGrid() {
                   </span>
 
                   <div className="flex items-center">
-                    {room.status === "active" ? (
+                    {room.status === 'active' ? (
                       <Pause className="h-4 w-4 text-amber-600" />
-                    ) : room.status === "paused" ? (
+                    ) : room.status === 'paused' ? (
                       <Play className="h-4 w-4 text-green-600" />
-                    ) : room.status === "draft" ? (
+                    ) : room.status === 'draft' ? (
                       <Play className="h-4 w-4 text-green-600" />
                     ) : (
                       <svg
@@ -134,26 +142,20 @@ export async function RoomGrid() {
           </Link>
         ))}
       </div>
-
- 
     </>
   );
 }
 
+function EmtyRoom() {
+  return (
+    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 text-center">
+      <h3 className="text-xl font-semibold text-purple-900 mb-2">
+        No quiz rooms found
+      </h3>
 
-
-function EmtyRoom(){
-  return(
-        <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 text-center">
-          <h3 className="text-xl font-semibold text-purple-900 mb-2">
-            No quiz rooms found
-          </h3>
-     
-          <Button
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" /> Create New Room
-          </Button>
-        </div>
-  )
+      <Button className="bg-purple-600 hover:bg-purple-700">
+        <PlusCircle className="mr-2 h-4 w-4" /> Create New Room
+      </Button>
+    </div>
+  );
 }

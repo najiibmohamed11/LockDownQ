@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import * as Clerk from "@clerk/elements/common";
-import * as SignIn from "@clerk/elements/sign-in";
-import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import * as Clerk from '@clerk/elements/common';
+import * as SignIn from '@clerk/elements/sign-in';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 
 export default function SignInPage() {
   return (
@@ -31,13 +31,14 @@ export default function SignInPage() {
                 Sign in to continue to your account
               </p>
             </div>
-            <SignIn.Step name="start" className="flex justify-center items-center ">
+            <SignIn.Step
+              name="start"
+              className="flex justify-center items-center "
+            >
               <Clerk.Connection name="google">
                 <Clerk.Loading scope="provider:google">
                   {(isLoading) => (
-                    <div
-                      className="w-full h-12 bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 flex items-center p-4 justify-center gap-3 rounded-xl transition-all duration-300 hover:shadow-md"
-                    >
+                    <div className="w-full h-12 bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 flex items-center p-4 justify-center gap-3 rounded-xl transition-all duration-300 hover:shadow-md">
                       {isLoading ? (
                         <div className="flex items-center gap-2">
                           <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
@@ -77,7 +78,7 @@ export default function SignInPage() {
             {/* Terms and Privacy */}
             <div className="text-center">
               <p className="text-sm text-gray-500">
-                By signing in, you agree to our{" "}
+                By signing in, you agree to our{' '}
                 <Link
                   href="/"
                   className="text-purple-600 hover:text-purple-800 font-medium transition-colors"

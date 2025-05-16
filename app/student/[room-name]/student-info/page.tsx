@@ -1,65 +1,63 @@
-"use client";
-import type React from "react";
+'use client';
+import type React from 'react';
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ArrowRight, Router } from "lucide-react";
-import Image from "next/image";
-import { CreatParticipent } from "@/app/actions/participants";
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { db } from "@/app/db/drizzle";
-import { rooms } from "@/app/db/schema";
-import { eq } from "drizzle-orm";
-import { checkIfTheRoomExist } from "@/app/actions/quiz";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ArrowRight, Router } from 'lucide-react';
+import Image from 'next/image';
+import { CreatParticipent } from '@/app/actions/participants';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { db } from '@/app/db/drizzle';
+import { rooms } from '@/app/db/schema';
+import { eq } from 'drizzle-orm';
+import { checkIfTheRoomExist } from '@/app/actions/quiz';
 
 export default function StudentInfo() {
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
-  const pathname = usePathname()
-  const [isLoading,setIsLoading]=useState(false);
+  const pathname = usePathname();
+  const [isLoading, setIsLoading] = useState(false);
 
-
-
-
-  useEffect(()=>{
-      const checkRoom=async()=>{
-        const {exist,message}=await checkIfTheRoomExist(pathname.split('/')[2])
-        console.log(message)
-        if(!exist){
-          router.push("/student/")
-        }
+  useEffect(() => {
+    const checkRoom = async () => {
+      const { exist, message } = await checkIfTheRoomExist(
+        pathname.split('/')[2]
+      );
+      console.log(message);
+      if (!exist) {
+        router.push('/student/');
       }
-      checkRoom()
-    
-  },[])
-
+    };
+    checkRoom();
+  }, []);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) {
-      setError("Please provide your name");
+      setError('Please provide your name');
       return;
     }
     try {
-      setIsLoading(true)
-      const result = await CreatParticipent(name,pathname.split('/')[2]);
+      setIsLoading(true);
+      const result = await CreatParticipent(name, pathname.split('/')[2]);
       if (result.success) {
-        router.push(`/student/quiz/${pathname.split('/')[2]}/${result.data.id}`);
+        router.push(
+          `/student/quiz/${pathname.split('/')[2]}/${result.data.id}`
+        );
       }
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "There was an issue. Please try again."
+          : 'There was an issue. Please try again.'
       );
       console.error(error);
-    }finally{
-      setIsLoading(false)
-
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -80,7 +78,7 @@ export default function StudentInfo() {
         </div>
         <div
           className="absolute top-1/3 right-1/4 opacity-5"
-          style={{ animationDelay: "1s" }}
+          style={{ animationDelay: '1s' }}
         >
           <svg
             width="160"
@@ -94,7 +92,7 @@ export default function StudentInfo() {
         </div>
         <div
           className="absolute bottom-1/4 left-1/3 opacity-5"
-          style={{ animationDelay: "2s" }}
+          style={{ animationDelay: '2s' }}
         >
           <svg
             width="140"
@@ -130,48 +128,51 @@ export default function StudentInfo() {
               </div>
 
               {error && (
-                <div className="bg-red-100 text-red-800 px-3 py-2 rounded-md text-sm flex justify-center">{error}</div>
+                <div className="bg-red-100 text-red-800 px-3 py-2 rounded-md text-sm flex justify-center">
+                  {error}
+                </div>
               )}
-            <div className="relative w-full">
-              <Button
-                type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 py-6 text-lg transition-all duration-300"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin h-6 w-6 text-white mr-3"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Joining...
-                  </div>
-                ) : (
-                  <>
-                    Join Quiz <ArrowRight className="ml-2 h-5 w-5 inline-block" />
-                  </>
+              <div className="relative w-full">
+                <Button
+                  type="submit"
+                  className="w-full bg-purple-600 hover:bg-purple-700 py-6 text-lg transition-all duration-300"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin h-6 w-6 text-white mr-3"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Joining...
+                    </div>
+                  ) : (
+                    <>
+                      Join Quiz{' '}
+                      <ArrowRight className="ml-2 h-5 w-5 inline-block" />
+                    </>
+                  )}
+                </Button>
+                {isLoading && (
+                  <div className="absolute inset-0 bg-purple-600 opacity-50 rounded-md cursor-not-allowed"></div>
                 )}
-              </Button>
-              {isLoading && (
-                <div className="absolute inset-0 bg-purple-600 opacity-50 rounded-md cursor-not-allowed"></div>
-              )}
-            </div>
+              </div>
             </form>
           </CardContent>
         </Card>

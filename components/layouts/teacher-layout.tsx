@@ -1,15 +1,25 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LayoutDashboard, FileQuestion, Users, Settings, LogOut, Menu, X, Snowflake, Bell } from "lucide-react"
+import { useState } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  LayoutDashboard,
+  FileQuestion,
+  Users,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  Snowflake,
+  Bell,
+} from 'lucide-react';
 
 export function TeacherLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-100 to-cyan-200 flex flex-col">
@@ -23,21 +33,34 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
                 className="md:hidden text-cyan-700"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
               >
-                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {sidebarOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
-              <Link href="/teacher/dashboard" className="flex items-center gap-2">
+              <Link
+                href="/teacher/dashboard"
+                className="flex items-center gap-2"
+              >
                 <Snowflake className="h-6 w-6 text-cyan-700" />
                 <h1 className="text-xl font-bold text-cyan-900">FrostQuiz</h1>
               </Link>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="text-cyan-700 relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-cyan-700 relative"
+              >
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </Button>
               <Avatar>
                 <AvatarImage src="/placeholder-user.jpg" alt="Teacher" />
-                <AvatarFallback className="bg-cyan-200 text-cyan-800">TC</AvatarFallback>
+                <AvatarFallback className="bg-cyan-200 text-cyan-800">
+                  TC
+                </AvatarFallback>
               </Avatar>
             </div>
           </div>
@@ -48,7 +71,7 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
         <aside
           className={`
           fixed inset-y-0 left-0 z-10 w-64 bg-white/80 backdrop-blur-sm border-r border-white/20 pt-16 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-auto
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
         >
           <nav className="p-4 space-y-1">
@@ -115,5 +138,5 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
         ></div>
       )}
     </div>
-  )
+  );
 }

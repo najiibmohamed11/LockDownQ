@@ -1,20 +1,20 @@
-"use client";
-import type React from "react";
+'use client';
+import type React from 'react';
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ArrowRight } from "lucide-react";
-import Image from "next/image";
-import { redirect } from "next/navigation";
-import { isRoomExists } from "../actions/quiz";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import { redirect } from 'next/navigation';
+import { isRoomExists } from '../actions/quiz';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function JoinQuiz() {
-  const [error, setError] = useState("");
-  const [roomName, setRoomName] = useState("");
+  const [error, setError] = useState('');
+  const [roomName, setRoomName] = useState('');
   const router = useRouter();
   const [isLoading, setLoading] = useState(false);
 
@@ -22,7 +22,7 @@ export default function JoinQuiz() {
     e.preventDefault();
 
     if (!roomName) {
-      setError("Please provide a room name");
+      setError('Please provide a room name');
       return;
     }
 
@@ -33,13 +33,13 @@ export default function JoinQuiz() {
       if (!exists || !roomId) {
         setLoading(false);
         setError(
-          "This room does not exist. Please check the room name and try again."
+          'This room does not exist. Please check the room name and try again.'
         );
         return;
       }
       if (error) {
         setLoading(false);
-        setError("There was an issue checking the room. Please try again.");
+        setError('There was an issue checking the room. Please try again.');
         return;
       }
 
@@ -47,7 +47,7 @@ export default function JoinQuiz() {
       router.push(`/student/${roomId}/student-info`);
       setLoading(false);
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -68,7 +68,7 @@ export default function JoinQuiz() {
         </div>
         <div
           className="absolute top-1/3 right-1/4 opacity-5"
-          style={{ animationDelay: "1s" }}
+          style={{ animationDelay: '1s' }}
         >
           <svg
             width="160"
@@ -82,7 +82,7 @@ export default function JoinQuiz() {
         </div>
         <div
           className="absolute bottom-1/4 left-1/3 opacity-5"
-          style={{ animationDelay: "2s" }}
+          style={{ animationDelay: '2s' }}
         >
           <svg
             width="140"
@@ -108,7 +108,7 @@ export default function JoinQuiz() {
         <Card className="bg-white/90 backdrop-blur-sm border-purple-100 overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl text-purple-900 text-center">
-              {" "}
+              {' '}
               Quiz Details
             </CardTitle>
           </CardHeader>
@@ -168,7 +168,7 @@ export default function JoinQuiz() {
                     </div>
                   ) : (
                     <>
-                      Join Quiz{" "}
+                      Join Quiz{' '}
                       <ArrowRight className="ml-2 h-5 w-5 inline-block" />
                     </>
                   )}

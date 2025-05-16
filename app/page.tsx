@@ -1,7 +1,7 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { OwlLogo } from "@/components/owl-logo"
-import Image from "next/image"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { OwlLogo } from '@/components/owl-logo';
+import Image from 'next/image';
 
 export default function Home() {
   return (
@@ -21,7 +21,7 @@ export default function Home() {
         </div>
         <div
           className="absolute top-1/3 right-1/4 opacity-5"
-          style={{ animationDelay: "1s" }}
+          style={{ animationDelay: '1s' }}
         >
           <svg
             width="160"
@@ -35,7 +35,7 @@ export default function Home() {
         </div>
         <div
           className="absolute bottom-1/4 left-1/3 opacity-5"
-          style={{ animationDelay: "2s" }}
+          style={{ animationDelay: '2s' }}
         >
           <svg
             width="140"

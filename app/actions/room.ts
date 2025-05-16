@@ -1,6 +1,6 @@
-import { db } from "@/db/drizzle";
-import { rooms, questions, participants } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { db } from '@/db/drizzle';
+import { rooms, questions, participants } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function getRoomDetails(roomId: string) {
   try {
@@ -12,7 +12,7 @@ export async function getRoomDetails(roomId: string) {
       .then((res) => res[0]);
 
     if (!room) {
-      throw new Error("Room not found");
+      throw new Error('Room not found');
     }
 
     // Get questions for the room
@@ -33,7 +33,7 @@ export async function getRoomDetails(roomId: string) {
       participants: roomParticipants,
     };
   } catch (error) {
-    console.error("Error fetching room details:", error);
+    console.error('Error fetching room details:', error);
     throw error;
   }
 }

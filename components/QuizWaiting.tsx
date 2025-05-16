@@ -1,19 +1,19 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
-import { motion } from "framer-motion"
-import { Loader2, Clock } from "lucide-react"
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Loader2, Clock } from 'lucide-react';
 
 export default function QuizWaiting() {
-  const [dots, setDots] = useState(".")
+  const [dots, setDots] = useState('.');
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setDots((prev) => (prev.length < 3 ? prev + "." : "."))
-    }, 600)
+      setDots((prev) => (prev.length < 3 ? prev + '.' : '.'));
+    }, 600);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 text-gray-800">
@@ -23,8 +23,12 @@ export default function QuizWaiting() {
         transition={{ duration: 0.8 }}
         className="text-center max-w-md"
       >
-        <h1 className="text-3xl md:text-4xl font-bold mb-2 text-purple-800">Quiz Starting Soon</h1>
-        <p className="text-purple-600 mb-8">Your teacher is preparing the quiz experience</p>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2 text-purple-800">
+          Quiz Starting Soon
+        </h1>
+        <p className="text-purple-600 mb-8">
+          Your teacher is preparing the quiz experience
+        </p>
 
         <div className="relative w-64 h-64 mx-auto mb-8">
           {/* Outer pulsing circle */}
@@ -37,7 +41,7 @@ export default function QuizWaiting() {
             transition={{
               duration: 2,
               repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
           />
 
@@ -51,7 +55,7 @@ export default function QuizWaiting() {
             transition={{
               duration: 2,
               repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
+              ease: 'easeInOut',
               delay: 0.3,
             }}
           />
@@ -65,7 +69,7 @@ export default function QuizWaiting() {
             transition={{
               duration: 3,
               repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
           >
             <Loader2 className="w-12 h-12 text-white animate-spin" />
@@ -85,8 +89,12 @@ export default function QuizWaiting() {
                 <Clock className="w-6 h-6 text-purple-600" />
               </div>
               <div className="text-left">
-                <p className="text-lg font-bold text-purple-800">Waiting for teacher{dots}</p>
-                <p className="text-gray-600 text-sm">Get ready! The quiz will begin soon.</p>
+                <p className="text-lg font-bold text-purple-800">
+                  Waiting for teacher{dots}
+                </p>
+                <p className="text-gray-600 text-sm">
+                  Get ready! The quiz will begin soon.
+                </p>
               </div>
             </div>
           </div>
@@ -101,7 +109,7 @@ export default function QuizWaiting() {
             transition={{
               duration: 2,
               repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
           />
           <motion.div
@@ -113,12 +121,12 @@ export default function QuizWaiting() {
             transition={{
               duration: 2,
               repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
+              ease: 'easeInOut',
               delay: 0.5,
             }}
           />
         </motion.div>
       </motion.div>
     </div>
-  )
+  );
 }

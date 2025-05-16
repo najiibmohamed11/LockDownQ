@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface CreateRoomModalProps {
   isOpen: boolean;
@@ -11,10 +11,10 @@ interface CreateRoomModalProps {
 }
 
 export function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
-  const [roomName, setRoomName] = useState("");
-  const [description, setDescription] = useState("");
-  const [duration, setDuration] = useState("");
-  const [durationUnit, setDurationUnit] = useState("minutes");
+  const [roomName, setRoomName] = useState('');
+  const [description, setDescription] = useState('');
+  const [duration, setDuration] = useState('');
+  const [durationUnit, setDurationUnit] = useState('minutes');
 
   if (!isOpen) return null;
 

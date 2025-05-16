@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { LogOut, User, CreditCard, ChevronDown } from "lucide-react";
-import { useUser, useClerk } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { LogOut, User, CreditCard, ChevronDown } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function UserProfile() {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,27 +27,27 @@ export function UserProfile() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
   // Get initials from name
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase();
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      router.push("/");
+      router.push('/');
     } catch (err) {
-      console.error("Error signing out:", err);
+      console.error('Error signing out:', err);
     }
   };
 
@@ -70,7 +70,7 @@ export function UserProfile() {
       <Button
         variant="outline"
         className="flex items-center gap-2"
-        onClick={() => router.push("/sign-in")}
+        onClick={() => router.push('/sign-in')}
       >
         Sign In
       </Button>
@@ -85,14 +85,14 @@ export function UserProfile() {
         onClick={() => setIsOpen(!isOpen)}
       >
         <Avatar className="h-8 w-8 border border-purple-100">
-          <AvatarImage src={user.imageUrl} alt={user.fullName || ""} />
+          <AvatarImage src={user.imageUrl} alt={user.fullName || ''} />
           <AvatarFallback className="bg-purple-100 text-purple-700">
-            {getInitials(user.fullName || "")}
+            {getInitials(user.fullName || '')}
           </AvatarFallback>
         </Avatar>
         <ChevronDown
           className={`h-4 w-4 text-gray-500 transition-transform ${
-            isOpen ? "rotate-180" : ""
+            isOpen ? 'rotate-180' : ''
           }`}
         />
       </Button>
@@ -102,9 +102,9 @@ export function UserProfile() {
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border border-purple-100">
-                <AvatarImage src={user.imageUrl} alt={user.fullName || ""} />
+                <AvatarImage src={user.imageUrl} alt={user.fullName || ''} />
                 <AvatarFallback className="bg-purple-100 text-purple-700">
-                  {getInitials(user.fullName || "")}
+                  {getInitials(user.fullName || '')}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">

@@ -1,23 +1,30 @@
-'use client'
+'use client';
 
-import { Button } from "@/components/ui/button"
-import { Copy, CheckCircle } from "lucide-react"
-import { useState } from "react"
-import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button';
+import { Copy, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface RoomActionsProps {
-  roomId: string
-  roomStatus: string
-  onToggleStatus: () => void
-  onCopyCode: () => void
+  roomId: string;
+  roomStatus: string;
+  onToggleStatus: () => void;
+  onCopyCode: () => void;
 }
 
-export function RoomActions({ roomId, roomStatus, onToggleStatus, onCopyCode }: RoomActionsProps) {
-  const [copiedCode, setCopiedCode] = useState(false)
+export function RoomActions({
+  roomId,
+  roomStatus,
+  onToggleStatus,
+  onCopyCode,
+}: RoomActionsProps) {
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const handleCopyCode = async () => {
     try {
-      await navigator.clipboard.writeText(`https://quiz-app-sepia-gamma.vercel.app/student/${roomId}`);
+      await navigator.clipboard.writeText(
+        `https://quiz-app-sepia-gamma.vercel.app/student/${roomId}`
+      );
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
       onCopyCode();
@@ -51,14 +58,14 @@ export function RoomActions({ roomId, roomStatus, onToggleStatus, onCopyCode }: 
       <Button
         variant="outline"
         className={cn(
-          "w-full",
-          roomStatus === "active"
-            ? "border-amber-600 text-amber-700 hover:bg-amber-100"
-            : "border-green-600 text-green-700 hover:bg-green-100",
+          'w-full',
+          roomStatus === 'active'
+            ? 'border-amber-600 text-amber-700 hover:bg-amber-100'
+            : 'border-green-600 text-green-700 hover:bg-green-100'
         )}
         onClick={onToggleStatus}
       >
-        {roomStatus === "active" ? (
+        {roomStatus === 'active' ? (
           <>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -102,10 +109,19 @@ export function RoomActions({ roomId, roomStatus, onToggleStatus, onCopyCode }: 
         <div className="bg-purple-100 text-purple-800 px-3 py-2 rounded-md font-mono text-lg tracking-wider flex-1 text-center">
           https://quiz-app-sepia-gamma.vercel.app/student/{roomId}
         </div>
-        <Button variant="ghost" size="icon" className="ml-2 text-purple-700" onClick={handleCopyCode}>
-          {copiedCode ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="ml-2 text-purple-700"
+          onClick={handleCopyCode}
+        >
+          {copiedCode ? (
+            <CheckCircle className="h-4 w-4" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </div>
-  )
+  );
 }

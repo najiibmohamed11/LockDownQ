@@ -1,9 +1,9 @@
-import { Suspense } from "react";
-import { OwlLogo } from "@/components/owl-logo";
-import { UserProfile } from "@/components/profile";
-import { TeacherHeader } from "./components/teacher-header";
-import { RoomGrid } from "./components/room-grid";
-import { CreateRoomModal } from "./components/create-room-modal";
+import { Suspense } from 'react';
+import { OwlLogo } from '@/components/owl-logo';
+import { UserProfile } from '@/components/profile';
+import { TeacherHeader } from './components/teacher-header';
+import { RoomGrid } from './components/room-grid';
+import { CreateRoomModal } from './components/create-room-modal';
 
 export default function TeacherRooms() {
   return (

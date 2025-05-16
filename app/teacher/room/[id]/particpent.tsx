@@ -1,7 +1,7 @@
-"use client"
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+'use client';
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   CheckCircle,
   XCircle,
@@ -12,11 +12,11 @@ import {
   FileSpreadsheet,
   CheckIcon,
   X,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import * as XLSX from "xlsx";
-import { useToast } from "@/components/ui/use-toast";
-import { updateShortAnswerDecision } from "@/app/actions/participants";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
+import { useToast } from '@/components/ui/use-toast';
+import { updateShortAnswerDecision } from '@/app/actions/participants';
 
 interface data {
   name: string;
@@ -29,7 +29,7 @@ export default function ParticipantsTab({ questions, participantsProp }) {
     participantId: string;
     questionId: string;
   } | null>(null);
-  const [participants,setParticipants]=useState(participantsProp)
+  const [participants, setParticipants] = useState(participantsProp);
   const { toast } = useToast();
 
   // Function to calculate student's score percentage
@@ -53,7 +53,7 @@ export default function ParticipantsTab({ questions, participantsProp }) {
     return {
       answered: true,
       isCorrect: participant.options[questionId].decision === true,
-      isPending: participant.options[questionId].decision === "pending",
+      isPending: participant.options[questionId].decision === 'pending',
       option: participant.options[questionId].option,
     };
   };
@@ -75,55 +75,49 @@ export default function ParticipantsTab({ questions, participantsProp }) {
 
       if (result.success) {
         toast({
-          title: "Decision updated",
+          title: 'Decision updated',
           description: result.message,
-          variant: "default",
+          variant: 'default',
         });
 
-      
-
-      setParticipants((prev)=>
-      prev.map((participant)=>{
-        if(participant.id==participantId){
-          return{
-            ...participant,
-            options: {
-            ...participant.options,
-            [questionId]: {
-              ...participant.options[questionId],
-              decision: decision,
+        setParticipants((prev) =>
+          prev.map((participant) => {
+            if (participant.id == participantId) {
+              return {
+                ...participant,
+                options: {
+                  ...participant.options,
+                  [questionId]: {
+                    ...participant.options[questionId],
+                    decision: decision,
+                  },
+                },
+              };
             }
-          }
+            return participant;
+          })
+        );
 
-          }
-        }
-        return participant
-      })
-      )
-
-
-      
-      
         // You might need to add a setState here if participants is a local state
         // or handle the server refresh differently based on your app architecture
       } else {
         toast({
-          title: "Error",
+          title: 'Error',
           description: result.message,
-          variant: "destructive",
+          variant: 'destructive',
         });
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update decision",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update decision',
+        variant: 'destructive',
       });
     } finally {
       setUpdatingDecision(null);
     }
   };
-      console.log(participants)
+  console.log(participants);
 
   function exportToExcel() {
     const data: data[] = [];
@@ -133,12 +127,12 @@ export default function ParticipantsTab({ questions, participantsProp }) {
         score: `${calculateScore(participant)}%`,
       });
     });
-    if(data.length==0){
+    if (data.length == 0) {
       return;
     }
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
     XLSX.writeFile(workbook, `ca211.xlsx`);
   }
 
@@ -191,22 +185,22 @@ export default function ParticipantsTab({ questions, participantsProp }) {
                 <React.Fragment key={student.id}>
                   <tr
                     className={cn(
-                      "border-b border-purple-50 hover:bg-purple-50/50",
-                      expandedParticipant === student.id && "bg-purple-50/70"
+                      'border-b border-purple-50 hover:bg-purple-50/50',
+                      expandedParticipant === student.id && 'bg-purple-50/70'
                     )}
                   >
                     <td className="p-4 text-purple-900 font-medium flex items-center min-w-[200px]">
-                      {student.name || "Anonymous"}
+                      {student.name || 'Anonymous'}
                     </td>
                     <td className="p-4">
                       <span
                         className={cn(
-                          "px-2 py-1 rounded-full text-sm font-medium",
+                          'px-2 py-1 rounded-full text-sm font-medium',
                           calculateScore(student) >= 80
-                            ? "bg-green-100 text-green-800"
+                            ? 'bg-green-100 text-green-800'
                             : calculateScore(student) >= 50
-                            ? "bg-indigo-100 text-indigo-800"
-                            : "bg-amber-100 text-amber-800"
+                              ? 'bg-indigo-100 text-indigo-800'
+                              : 'bg-amber-100 text-amber-800'
                         )}
                       >
                         {calculateScore(student)}%
@@ -222,13 +216,13 @@ export default function ParticipantsTab({ questions, participantsProp }) {
                           {status.answered ? (
                             <div
                               className={cn(
-                                "rounded-md p-2 flex flex-col items-center justify-center",
-                                question.type === "short_answer" &&
+                                'rounded-md p-2 flex flex-col items-center justify-center',
+                                question.type === 'short_answer' &&
                                   status.isPending
-                                  ? "bg-yellow-50 text-yellow-800 border border-yellow-200"
+                                  ? 'bg-yellow-50 text-yellow-800 border border-yellow-200'
                                   : status.isCorrect
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
                               )}
                             >
                               {/* Answer text */}
@@ -237,7 +231,7 @@ export default function ParticipantsTab({ questions, participantsProp }) {
                               </div>
 
                               {/* Decision indicators or buttons */}
-                              {question.type === "short_answer" &&
+                              {question.type === 'short_answer' &&
                               status.isPending ? (
                                 <div className="flex items-center space-x-1 mt-1">
                                   <Button
@@ -281,7 +275,7 @@ export default function ParticipantsTab({ questions, participantsProp }) {
                                     <XCircle className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              ) : question.type !== "short_answer" ? (
+                              ) : question.type !== 'short_answer' ? (
                                 status.isCorrect ? (
                                   <CheckCircle className="h-4 w-4" />
                                 ) : (
@@ -353,7 +347,7 @@ export default function ParticipantsTab({ questions, participantsProp }) {
                               participants.length) *
                               100
                           )}%`
-                        : "-"}
+                        : '-'}
                     </div>
                   </td>
                 ))}
